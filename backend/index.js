@@ -139,6 +139,50 @@ const handleGoogleAuth = async (req, res) => {
     } else { user = userResult.rows[0]; }
     const token = jwt.sign({ id: user.id, email: user.email, role: user.role || 'candidat' },
       process.env.JWT_SECRET || 'SECRET_KEY_PROVISOIRE', { expiresIn: '24h' });
+
+    // Envoi d'un email d'information simple (signalement de connexion via Google)
+    try {
+      const loginDate = new Date().toLocaleString('fr-FR', { timeZone: 'Africa/Douala' });
+      const userIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Confidentielle';
+
+      transporter.sendMail({
+        from: `"HireBridge-Mairie de Soa" <${process.env.EMAIL_USER || 'no-reply@soa.cm'}>`,
+        to: cleanEmail,
+        subject: ' Notification de connexion à votre compte via Google',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
+            <div style="text-align: center; border-bottom: 2px solid #00a859; padding-bottom: 15px; margin-bottom: 20px;">
+              <h2 style="color: #0b192c; margin: 0;">Mairie de Soa — HireBridge</h2>
+              <p style="color: #64748b; font-size: 0.85rem; margin-top: 5px;">Notification d'accès à la plateforme</p>
+            </div>
+
+            <p style="font-size: 1rem; color: #1e293b;">Bonjour <strong>${user.prenom || 'Citoyen'} ${user.nom || ''}</strong>,</p>
+
+            <p style="font-size: 0.95rem; color: #334155; line-height: 1.6;">
+              Ce message vous informe que vous venez de vous connecter à la plateforme <strong>HireBridge Soa</strong> via votre compte <strong>Google</strong>.
+            </p>
+
+            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; margin: 20px 0; border-radius: 8px;">
+              <p style="margin: 4px 0; font-size: 0.9rem; color: #0f172a;"><strong>Compte Google :</strong> ${cleanEmail}</p>
+              <p style="margin: 4px 0; font-size: 0.9rem; color: #0f172a;"><strong>Date &amp; Heure :</strong> ${loginDate}</p>
+              <p style="margin: 4px 0; font-size: 0.9rem; color: #0f172a;"><strong>Adresse IP :</strong> ${userIp}</p>
+            </div>
+
+            <p style="font-size: 0.88rem; color: #64748b; line-height: 1.5; background-color: #f1f5f9; padding: 12px; border-radius: 8px;">
+              <em>Cet email est une simple notification automatique d'information. Si c'est bien vous qui vous êtes connecté, aucune action de votre part n'est requise. Si une autre personne a utilisé votre compte Google, ce message vous permet d'en être immédiatement averti.</em>
+            </p>
+
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 25px 0;" />
+            <p style="font-size: 0.78rem; color: #94a3b8; text-align: center;">
+              Mairie de Soa — Plateforme Numérique Officielle de Recrutement &amp; Gestion Citoyenne
+            </p>
+          </div>
+        `
+      }).catch(err => console.error('Erreur envoi email alerte Google:', err));
+    } catch (emailErr) {
+      console.error('Erreur préparation email Google alert:', emailErr);
+    }
+
     res.json({ message: 'Connexion Google réussie !', token, user: { id: user.id, nom: user.nom, prenom: user.prenom, email: user.email, role: user.role || 'candidat', avatar_url: user.avatar_url } });
   } catch (err) { res.status(400).json({ message: 'Échec Google Auth.' }); }
 };
@@ -154,7 +198,7 @@ app.post('/api/forgot-password', async (req, res) => {
     await pool.query('UPDATE users SET reset_code=$1, reset_code_expires=$2 WHERE LOWER(email)=$3',
       [resetCode, new Date(Date.now() + 15 * 60000), cleanEmail]);
     try {
-      await transporter.sendMail({ from: `"HireBridge" <${process.env.EMAIL_USER}>`, to: cleanEmail,
+      await transporter.sendMail({ from: `"HireBridge-Mairie de Soa" <${process.env.EMAIL_USER || 'no-reply@soa.cm'}>`, to: cleanEmail,
         subject: 'Code de réinitialisation - Mairie de Soa',
         html: `<h2>Code: <b style="color:#22c55e;letter-spacing:5px">${resetCode}</b></h2><p>Expire dans 15 min.</p>` });
     } catch (e) { /* email non configuré */ }
@@ -928,12 +972,24 @@ app.post('/api/applications/submit-dossier', dossierUpload.fields(allDocFields),
       const typeLabel = appType === 'emploi' ? 'demande d\'emploi' : (appType === 'stage_academique' ? 'demande de stage académique' : (appType === 'stage_vacances' ? 'demande de stage de vacances' : 'demande de stage professionnel'));
       try {
         await transporter.sendMail({
-          from: `"HireBridge - Mairie de Soa" <${process.env.EMAIL_USER}>`,
+          from: `"HireBridge-Mairie de Soa" <${process.env.EMAIL_USER || 'no-reply@soa.cm'}>`,
           to: u.email,
           subject: ' Dossier reçu — Mairie de Soa',
           html: `<p>Bonjour <b>${u.prenom} ${u.nom}</b>,</p><p>Votre <b>${typeLabel}</b> a bien été soumise. Réf : <b>#HB-${application.id}-${new Date().getFullYear()}</b>.</p><p>Vous recevrez une décharge officielle dès validation par le Service RH.</p>`
         });
       } catch (e) { console.error('Email confirmation:', e.message); }
+
+      // Notification automatique pour l'équipe RH
+      try {
+        const candName = `${u.prenom} ${u.nom}`;
+        await notifyHrAdmins(
+          ` Nouveau Dossier de Candidature Transmis !`,
+          `Dossier complet (${typeLabel}) transmis par ${candName}. Réf : #HB-${application.id}-${new Date().getFullYear()}.`,
+          'candidature',
+          'applications',
+          'fa-solid fa-folder-plus'
+        );
+      } catch (hrNotifErr) { console.error('Erreur notifyHrAdmins submit-dossier:', hrNotifErr.message); }
     }
 
     res.status(201).json({
@@ -1205,7 +1261,7 @@ const handleValidateAndDischarge = async (req, res) => {
     // 2. Envoyer l'Email avec la Décharge officielle
     try {
       await transporter.sendMail({
-        from: `"Service RH — Mairie de Soa" <${process.env.EMAIL_USER || 'no-reply@soa.cm'}>`,
+        from: `"HireBridge-Mairie de Soa" <${process.env.EMAIL_USER || 'no-reply@soa.cm'}>`,
         to: d.email,
         subject: ` Accusé de Réception & Décharge Officielle — ${d.job_title} (Réf. ${ref})`,
         html: `
@@ -1225,53 +1281,22 @@ const handleValidateAndDischarge = async (req, res) => {
       console.warn('Erreur envoi email décharge:', mailErr.message);
     }
 
-    // 3. Envoyer le Message Automatique RH dans la messagerie
-    try {
-      const msgContent = `Bonjour ${d.prenom} ${d.nom},\n\n` +
-        `Nous vous confirmons la bonne réception de votre dossier de candidature pour le poste / stage de "${d.job_title}" (Service : ${d.department}) au sein de la Mairie de Soa.\n\n` +
-        `Votre dossier a été examiné par le Service des Ressources Humaines et est actuellement EN COURS DE TRAITEMENT par la commission de sélection municipale.\n\n` +
-        `Une DÉCHARGE OFFICIELLE portant la référence #${ref} vous a été automatiquement transmise par courrier électronique à votre adresse (${d.email}).\n\n` +
-        `Vous pouvez également télécharger votre décharge et suivre l'avancement de votre dossier en temps réel depuis l'onglet "Mes Candidatures" de votre espace candidat.\n\n` +
-        `Si vous avez la moindre question concernant le suivi de votre candidature, vous pouvez nous écrire directement dans cette messagerie.\n\n` +
-        `Cordialement,\nLe Service des Ressources Humaines • Mairie de la Commune de Soa`;
-
-      await pool.query(`
-        INSERT INTO messages (sender_id, receiver_id, content, subject, is_read, created_at)
-        VALUES ($1, $2, $3, $4, false, NOW())
-      `, [
-        adminRhId,
-        d.user_id,
-        msgContent,
-        `Accusé de Réception & Décharge Officielle — ${d.job_title}`
-      ]);
-    } catch (msgErr) {
-      console.error('Erreur insertion message automatique RH:', msgErr);
-    }
-
-    // 4. Créer les notifications in-app pour le candidat
+    // 3. Créer la notification in-app pour le candidat (signalant la réception par e-mail)
     try {
       await createNotification(
         d.user_id,
-        'Dossier Validé & Décharge Émise',
-        `Votre candidature pour "${d.job_title}" a été reçue et est en cours de traitement. Votre décharge officielle a été envoyée par e-mail.`,
+        'Décharge officielle reçue par e-mail',
+        `Votre décharge officielle de candidature pour "${d.job_title}" (Réf. ${ref}) vous a été envoyée par e-mail. Vous pouvez également la consulter et la télécharger à tout moment dans votre espace candidat.`,
         'recrutement',
         'applications',
-        'fa-solid fa-stamp'
-      );
-      await createNotification(
-        d.user_id,
-        'Message du Service RH',
-        `Le Service RH vous a transmis une confirmation officielle concernant votre candidature pour "${d.job_title}".`,
-        'information',
-        'messages',
-        'fa-solid fa-comments'
+        'fa-solid fa-envelope-open-text'
       );
     } catch (notifErr) {
       console.error('Erreur notification décharge:', notifErr);
     }
 
     res.json({
-      message: `Dossier validé ! La décharge officielle a été transmise à ${d.email} et un message automatique de confirmation a été envoyé dans la messagerie du candidat.`,
+      message: `Dossier validé ! La décharge officielle a été transmise par e-mail à ${d.email}.`,
       ref,
       status: newStatus,
       dischargeHTML
@@ -1389,7 +1414,7 @@ const handleRejectApplication = async (req, res) => {
 
           ${isResubmissionAllowed ? `
             <div style="background: #f0fdf4; border: 1.5px solid #16a34a; padding: 16px; border-radius: 10px; margin: 20px 0; font-size: 0.9rem; color: #15803d;">
-              <strong>ℹ️ Possibilité de régularisation :</strong> La commission vous autorise à corriger votre dossier (mise à jour des pièces justificatives, diplômes ou CV) et à soumettre à nouveau votre candidature depuis votre espace candidat sur HireBridge Soa.
+              <strong>Possibilité de régularisation :</strong> La commission vous autorise à corriger votre dossier (mise à jour des pièces justificatives, diplômes ou CV) et à soumettre à nouveau votre candidature depuis votre espace candidat sur HireBridge Soa.
             </div>
           ` : `
             <p style="font-size: 0.9rem; color: #475569;">
@@ -1407,7 +1432,7 @@ const handleRejectApplication = async (req, res) => {
     // 3. Envoyer l'Email au candidat via Nodemailer
     try {
       await transporter.sendMail({
-        from: `"Service RH — Mairie de Soa" <${process.env.EMAIL_USER || 'no-reply@soa.cm'}>`,
+        from: `"HireBridge-Mairie de Soa" <${process.env.EMAIL_USER || 'no-reply@soa.cm'}>`,
         to: d.email,
         subject: ` Notification concernant votre candidature : ${d.job_title} (Réf. ${ref})`,
         html: rejectionHTML
@@ -1473,18 +1498,72 @@ app.post('/api/applications/:id/reject', handleRejectApplication);
 // 7. CANDIDATURES (CRUD + SUIVI)
 // ==========================================
 
-// Postuler (ancien endpoint — conservé pour compatibilité)
-app.post('/api/applications/apply', async (req, res) => {
+// Postuler à une offre avec support de téléversement de pièces PDF sur-mesure
+const applyDocFields = [
+  { name: 'cv', maxCount: 1 },
+  { name: 'lettre_motivation', maxCount: 1 },
+  { name: 'diplome', maxCount: 1 },
+  { name: 'cni', maxCount: 1 },
+  { name: 'autre_piece', maxCount: 1 }
+];
+
+app.post('/api/applications/apply', dossierUpload.fields(applyDocFields), async (req, res) => {
   const { userId, jobId, compatibilityScore, coverLetter } = req.body;
+  const files = req.files || {};
   try {
+    if (!userId || !jobId) {
+      return res.status(400).json({ message: 'Identifiant d\'utilisateur ou d\'offre manquant.' });
+    }
     const ex = await pool.query('SELECT id FROM applications WHERE user_id=$1 AND job_id=$2', [userId, jobId]);
     if (ex.rows.length > 0) return res.status(400).json({ message: 'Vous avez déjà postulé à cette offre.' });
+    
     const r = await pool.query(
       `INSERT INTO applications(user_id,job_id,application_type,compatibility_score,status,cover_letter) VALUES($1,$2,'emploi',$3,'soumis',$4) RETURNING *`,
       [userId, jobId, compatibilityScore || 75, coverLetter || '']
     );
-    res.status(201).json({ message: 'Candidature transmise !', application: r.rows[0] });
-  } catch (err) { res.status(500).json({ message: 'Erreur candidature.' }); }
+    const application = r.rows[0];
+
+    // Enregistrer les pièces justificatives PDF spécifiques à cette offre
+    const fieldMapping = {
+      cv: 'CV Spécifique Offre (PDF)',
+      lettre_motivation: 'Lettre de Motivation PDF',
+      diplome: 'Diplôme / Certification PDF',
+      cni: 'Copie CNI PDF',
+      autre_piece: 'Pièce Complémentaire PDF'
+    };
+
+    for (const fieldName of Object.keys(fieldMapping)) {
+      const f = (files[fieldName] || [])[0];
+      if (f) {
+        await pool.query(
+          `INSERT INTO documents(user_id, application_id, doc_type, document_type, file_name, file_url, mime_type, status)
+           VALUES($1, $2, $3, $4, $5, $6, $7, 'valide')`,
+          [userId, application.id, fieldName, fieldMapping[fieldName], f.originalname, `/uploads/${f.filename}`, f.mimetype]
+        );
+      }
+    }
+
+    // Notification automatique pour l'équipe RH
+    try {
+      const candInfo = (await pool.query('SELECT nom, prenom FROM users WHERE id=$1', [userId])).rows[0];
+      const jobInfo = (await pool.query('SELECT title FROM jobs WHERE id=$1', [jobId])).rows[0];
+      const candName = candInfo ? `${candInfo.prenom} ${candInfo.nom}` : 'Un candidat';
+      const jobTitle = jobInfo ? jobInfo.title : 'une offre d\'emploi';
+      
+      await notifyHrAdmins(
+        ` Nouvelle Candidature Reçue !`,
+        `${candName} vient de postuler pour l'offre « ${jobTitle} ». Dossier en attente d'examen.`,
+        'candidature',
+        'applications',
+        'fa-solid fa-user-plus'
+      );
+    } catch (hrNotifErr) { console.error('Erreur notifyHrAdmins apply:', hrNotifErr.message); }
+
+    res.status(201).json({ message: 'Candidature transmise avec succès !', application });
+  } catch (err) {
+    console.error('Erreur POST /api/applications/apply:', err);
+    res.status(500).json({ message: 'Erreur lors de la transmission de la candidature.' });
+  }
 });
 
 // GET candidatures d'un candidat (avec décharge)
@@ -1528,15 +1607,15 @@ app.put('/api/applications/:id/status', async (req, res) => {
 // GET /api/admin/analytics (Global Dashboard RH Analytics)
 app.get('/api/admin/analytics', async (req, res) => {
   try {
-    const [appsRes, jobsRes, candRes] = await Promise.all([
+    const [appsRes, jobsRes, candRes, trainRes] = await Promise.all([
       pool.query("SELECT a.compatibility_score, a.job_id, u.region, j.title FROM applications a JOIN users u ON a.user_id = u.id LEFT JOIN jobs j ON a.job_id = j.id"),
       pool.query("SELECT COUNT(*) FROM jobs"),
-      pool.query("SELECT COUNT(*) FROM users WHERE role = 'candidat'")
+      pool.query("SELECT COUNT(*) FROM users WHERE role = 'candidat'"),
+      pool.query("SELECT COUNT(*) FROM training_applications")
     ]);
 
     const apps = appsRes.rows;
     const totalApps = apps.length;
-    const avgScore = totalApps > 0 ? Math.round(apps.reduce((acc, a) => acc + (a.compatibility_score || 75), 0) / totalApps) : 82;
 
     const geoMap = {};
     apps.forEach(a => {
@@ -1554,7 +1633,7 @@ app.get('/api/admin/analytics', async (req, res) => {
       totalApplications: totalApps,
       totalJobs: parseInt(jobsRes.rows[0].count, 10),
       totalCandidates: parseInt(candRes.rows[0].count, 10),
-      averageCompatibility: avgScore,
+      totalTrainings: parseInt(trainRes.rows[0].count, 10),
       geographicDistribution: Object.keys(geoMap).map(r => ({ region: r, count: geoMap[r] })),
       topAttractiveJobs: Object.keys(jobMap).map(t => ({ title: t, total_applications: jobMap[t] })).sort((a, b) => b.total_applications - a.total_applications).slice(0, 5)
     });
@@ -1868,7 +1947,7 @@ app.post('/api/interviews/schedule', async (req, res) => {
 
     try {
       await transporter.sendMail({
-        from: `"Service RH - Mairie de Soa" <${process.env.EMAIL_USER || 'no-reply@soa.cm'}>`,
+        from: `"HireBridge-Mairie de Soa" <${process.env.EMAIL_USER || 'no-reply@soa.cm'}>`,
         to: candidate.email,
         subject: emailSubject,
         html: emailHtml
@@ -2465,6 +2544,9 @@ app.post('/api/trainings', async (req, res) => {
       format, duration, start_date, end_date, capacity, certification
     } = req.body;
 
+    const cleanStartDate = (start_date && typeof start_date === 'string' && start_date.trim() !== '') ? start_date : null;
+    const cleanEndDate = (end_date && typeof end_date === 'string' && end_date.trim() !== '') ? end_date : null;
+
     const r = await pool.query(`
       INSERT INTO trainings (
         title, category, description, prerequisites, trainer, location,
@@ -2472,16 +2554,24 @@ app.post('/api/trainings', async (req, res) => {
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'OUVERTE')
       RETURNING *
     `, [
-      title, category || 'Administration & Numérique', description, prerequisites,
-      trainer || 'Cellule de Formation Mairie de Soa', location || 'Hôtel de Ville de Soa',
-      format || 'Présentiel & Ateliers Pratiques', duration || '3 Semaines',
-      start_date, end_date, capacity || 30, certification || 'Certificat Officiel Commune de Soa'
+      title,
+      category || 'Administration & Numérique',
+      description || 'Formation municipale certifiante organisée par la Mairie de Soa.',
+      prerequisites || 'Ouvert à tous les habitants de Soa',
+      trainer || 'Cellule Municipale de Formation — Soa',
+      location || 'Hôtel de Ville de Soa — Salle Multimédia',
+      format || 'Présentiel & Ateliers Pratiques',
+      duration || '3 Semaines (60h)',
+      cleanStartDate,
+      cleanEndDate,
+      capacity || 30,
+      certification || 'Certificat Officiel Commune de Soa'
     ]);
 
     res.status(201).json({ message: 'Formation créée avec succès !', training: r.rows[0] });
   } catch (err) {
     console.error('Erreur POST /api/trainings:', err);
-    res.status(500).json({ message: 'Erreur création formation.' });
+    res.status(500).json({ message: 'Erreur création formation: ' + (err.message || 'Problème serveur') });
   }
 });
 
@@ -2493,6 +2583,9 @@ app.put('/api/trainings/:id', async (req, res) => {
       title, category, description, prerequisites, trainer, location,
       format, duration, start_date, end_date, capacity, certification, status
     } = req.body;
+
+    const cleanStartDate = (start_date && typeof start_date === 'string' && start_date.trim() !== '') ? start_date : null;
+    const cleanEndDate = (end_date && typeof end_date === 'string' && end_date.trim() !== '') ? end_date : null;
 
     const r = await pool.query(`
       UPDATE trainings SET
@@ -2513,11 +2606,12 @@ app.put('/api/trainings/:id', async (req, res) => {
       RETURNING *
     `, [
       title, category, description, prerequisites, trainer, location,
-      format, duration, start_date, end_date, capacity, certification, status, id
+      format, duration, cleanStartDate, cleanEndDate, capacity, certification, status, id
     ]);
 
     res.json({ message: 'Formation mise à jour !', training: r.rows[0] });
   } catch (err) {
+    console.error('Erreur PUT /api/trainings:', err);
     res.status(500).json({ message: 'Erreur mise à jour formation.' });
   }
 });
@@ -2560,11 +2654,13 @@ app.get('/api/candidate/trainings/my-applications/:userId', async (req, res) => 
   }
 });
 
-// Postuler / Inscription à une formation avec CV, Diplôme et Lettre de motivation (Candidat)
+// Postuler / Inscription à une demande (Formation Municipale) avec 4 documents (CV, Demande, Lettre, CNI)
 app.post('/api/candidate/trainings/apply', upload.fields([
   { name: 'cv', maxCount: 1 },
-  { name: 'diploma', maxCount: 1 },
-  { name: 'cover_letter', maxCount: 1 }
+  { name: 'request_letter', maxCount: 1 },
+  { name: 'cover_letter', maxCount: 1 },
+  { name: 'identity_card', maxCount: 1 },
+  { name: 'diploma', maxCount: 1 }
 ]), async (req, res) => {
   try {
     const { trainingId, userId, nom, prenom, email, phone, motivation_text } = req.body;
@@ -2578,43 +2674,94 @@ app.post('/api/candidate/trainings/apply', upload.fields([
       [trainingId, userId]
     );
     if (existing.rows.length > 0) {
-      return res.status(400).json({ message: 'Vous avez déjà soumis une demande pour cette formation.' });
+      return res.status(400).json({ message: 'Vous avez déjà soumis une demande pour ce programme.' });
     }
 
     const cvFile = req.files && req.files['cv'] ? req.files['cv'][0] : null;
-    const diplomaFile = req.files && req.files['diploma'] ? req.files['diploma'][0] : null;
+    const requestLetterFile = req.files && req.files['request_letter'] ? req.files['request_letter'][0] : null;
     const coverLetterFile = req.files && req.files['cover_letter'] ? req.files['cover_letter'][0] : null;
+    const identityCardFile = req.files && req.files['identity_card'] ? req.files['identity_card'][0] : null;
+    const diplomaFile = req.files && req.files['diploma'] ? req.files['diploma'][0] : null;
 
     const cv_url = cvFile ? `http://localhost:5000/uploads/${cvFile.filename}` : null;
     const cv_filename = cvFile ? cvFile.originalname : null;
 
-    const diploma_url = diplomaFile ? `http://localhost:5000/uploads/${diplomaFile.filename}` : null;
-    const diploma_filename = diplomaFile ? diplomaFile.originalname : null;
+    const request_letter_url = requestLetterFile ? `http://localhost:5000/uploads/${requestLetterFile.filename}` : null;
+    const request_letter_filename = requestLetterFile ? requestLetterFile.originalname : null;
 
     const cover_letter_url = coverLetterFile ? `http://localhost:5000/uploads/${coverLetterFile.filename}` : null;
     const cover_letter_filename = coverLetterFile ? coverLetterFile.originalname : null;
 
+    const identity_card_url = identityCardFile ? `http://localhost:5000/uploads/${identityCardFile.filename}` : null;
+    const identity_card_filename = identityCardFile ? identityCardFile.originalname : null;
+
+    const diploma_url = diplomaFile ? `http://localhost:5000/uploads/${diplomaFile.filename}` : null;
+    const diploma_filename = diplomaFile ? diplomaFile.originalname : null;
+
+    // S'assurer que les colonnes existent dans la table training_applications
+    await pool.query(`
+      ALTER TABLE training_applications ADD COLUMN IF NOT EXISTS request_letter_url VARCHAR(500);
+      ALTER TABLE training_applications ADD COLUMN IF NOT EXISTS request_letter_filename VARCHAR(255);
+      ALTER TABLE training_applications ADD COLUMN IF NOT EXISTS identity_card_url VARCHAR(500);
+      ALTER TABLE training_applications ADD COLUMN IF NOT EXISTS identity_card_filename VARCHAR(255);
+    `);
+
     const r = await pool.query(`
       INSERT INTO training_applications (
         training_id, user_id, nom, prenom, email, phone, motivation_text,
-        cv_url, cv_filename, diploma_url, diploma_filename, cover_letter_url, cover_letter_filename,
-        status
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 'EN_ATTENTE')
+        cv_url, cv_filename, request_letter_url, request_letter_filename,
+        cover_letter_url, cover_letter_filename, identity_card_url, identity_card_filename,
+        diploma_url, diploma_filename, status
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, 'EN_ATTENTE')
       RETURNING *
     `, [
       trainingId, userId, nom, prenom, email, phone, motivation_text || '',
-      cv_url, cv_filename, diploma_url, diploma_filename, cover_letter_url, cover_letter_filename
+      cv_url, cv_filename, request_letter_url, request_letter_filename,
+      cover_letter_url, cover_letter_filename, identity_card_url, identity_card_filename,
+      diploma_url, diploma_filename
     ]);
 
     await pool.query('UPDATE trainings SET enrolled_count = enrolled_count + 1 WHERE id = $1', [trainingId]);
 
+    // Enregistrer également les pièces justificatives dans la table centrale documents
+    const docsToInsert = [
+      { file: cvFile, type: 'cv', label: 'Curriculum Vitae (CV)' },
+      { file: requestLetterFile, type: 'demande_manuscrite', label: 'Demande de participation' },
+      { file: coverLetterFile, type: 'lettre_motivation', label: 'Lettre de Motivation' },
+      { file: identityCardFile, type: 'copie_cni', label: 'Copie Pièce d\'Identité (CNI)' }
+    ];
+
+    for (const d of docsToInsert) {
+      if (d.file) {
+        await pool.query(
+          `INSERT INTO documents(user_id, doc_type, document_type, file_name, file_url, mime_type, status)
+           VALUES($1, $2, $3, $4, $5, $6, 'valide')`,
+          [userId, d.type, d.label, d.file.originalname, `/uploads/${d.file.filename}`, d.file.mimetype]
+        );
+      }
+    }
+
+    // Notification automatique pour l'équipe RH
+    try {
+      const trainingInfo = (await pool.query('SELECT title FROM trainings WHERE id=$1', [trainingId])).rows[0];
+      const trTitle = trainingInfo ? trainingInfo.title : 'une formation';
+      
+      await notifyHrAdmins(
+        ` Nouvelle Inscription Formation Municipale !`,
+        `${prenom || ''} ${nom || ''} a soumis une demande d'inscription pour la formation « ${trTitle} ».`,
+        'formation',
+        'trainings',
+        'fa-solid fa-graduation-cap'
+      );
+    } catch (hrNotifErr) { console.error('Erreur notifyHrAdmins training apply:', hrNotifErr.message); }
+
     res.status(201).json({
-      message: 'Votre demande d\'inscription à la formation a été transmise avec succès à la Mairie de Soa !',
+      message: 'Votre demande de participation a été transmise avec succès à la Mairie de Soa !',
       application: r.rows[0]
     });
   } catch (err) {
     console.error('Erreur POST /api/candidate/trainings/apply:', err);
-    res.status(500).json({ message: 'Erreur lors de la soumission de la candidature à la formation.' });
+    res.status(500).json({ message: 'Erreur lors de la soumission de la demande de participation.' });
   }
 });
 
@@ -2712,9 +2859,142 @@ app.put('/api/admin/training-applications/:id/status', async (req, res) => {
       return res.status(404).json({ message: 'Demande de formation introuvable.' });
     }
 
+    // Récupération des détails complets pour envoi d'email & message interne
+    const appDetails = await pool.query(`
+      SELECT ta.*, 
+             t.title as training_title, 
+             t.category as training_category, 
+             t.location as training_location, 
+             t.start_date as training_start_date,
+             u.id as candidate_user_id,
+             u.email as candidate_email, 
+             u.nom as candidate_nom, 
+             u.prenom as candidate_prenom
+      FROM training_applications ta
+      JOIN trainings t ON ta.training_id = t.id
+      JOIN users u ON ta.user_id = u.id
+      WHERE ta.id = $1
+    `, [id]);
+
+    if (appDetails.rows.length > 0) {
+      const candidate = appDetails.rows[0];
+      const dateStr = new Date().toLocaleDateString('fr-FR');
+      const receiptNo = receipt_number || candidate.receipt_number || `SOA-FORM-${new Date().getFullYear()}-${String(id).padStart(5, '0')}`;
+
+      // CAS 1 : DOSSIER ACCEPTÉ / CONFIRMÉ
+      if (status === 'CONFIRMEE' || status === 'ACCEPTEE') {
+        // A. Envoi de l'Email au candidat
+        try {
+          await transporter.sendMail({
+            from: `"HireBridge-Mairie de Soa" <${process.env.EMAIL_USER || 'no-reply@soa.cm'}>`,
+            to: candidate.candidate_email,
+            subject: ` Inscription Confirmée — Formation Municipale : ${candidate.training_title}`,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 14px; background: #ffffff; overflow: hidden;">
+                <div style="background: #00a859; padding: 20px; text-align: center; color: #ffffff;">
+                  <h2 style="margin: 0; font-size: 1.4rem;">MAIRIE DE LA COMMUNE DE SOA</h2>
+                  <p style="margin: 4px 0 0 0; font-size: 0.9rem; opacity: 0.9;">Service des Ressources Humaines &bull; Formation Municipale</p>
+                </div>
+                
+                <div style="padding: 24px; color: #1e293b; line-height: 1.6;">
+                  <p style="font-size: 1.05rem;">Bonjour <strong>${candidate.candidate_prenom} ${candidate.candidate_nom}</strong>,</p>
+                  
+                  <p>Nous avons le plaisir de vous informer que votre dossier de candidature pour la formation municipale intitulée <strong>« ${candidate.training_title} »</strong> a été officiellement <strong>ACCEPTÉ ET VALIDÉ</strong> par la Commission des Ressources Humaines de la Mairie de Soa.</p>
+                  
+                  <div style="background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: 10px; padding: 16px; margin: 20px 0;">
+                    <h4 style="margin: 0 0 10px 0; color: #166534; font-size: 0.95rem;"> DÉTAILS DE VOTRE DÉCHARGE OFFICIELLE :</h4>
+                    <p style="margin: 4px 0; font-size: 0.9rem;"><strong>• Numéro de Décharge :</strong> <span style="color: #00a859; font-weight: bold;">${receiptNo}</span></p>
+                    <p style="margin: 4px 0; font-size: 0.9rem;"><strong>• Date d'Émission :</strong> ${dateStr}</p>
+                    <p style="margin: 4px 0; font-size: 0.9rem;"><strong>• Statut du Dossier :</strong> Confirmé &amp; Conforme</p>
+                  </div>
+                  
+                  <p>Votre accusé de réception / décharge officielle est désormais disponible au téléchargement direct dans votre espace candidat sur la plateforme <strong>HireBridge Soa</strong> (Onglet <em>« Mes Formations »</em>).</p>
+
+                  ${admin_notes ? `<p style="background: #f8fafc; padding: 12px; border-left: 4px solid #0284c7; font-size: 0.88rem; color: #334155;"><strong>Note administrative :</strong> ${admin_notes}</p>` : ''}
+                  
+                  <p style="margin-top: 25px;">Félicitations et nous vous souhaitons un excellent parcours de formation au sein de notre commune.</p>
+                </div>
+
+                <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 16px; text-align: center; font-size: 0.78rem; color: #64748b;">
+                  <strong>COMMUNE DE SOA &bull; DIRECTION DES RESSOURCES HUMAINES</strong><br />
+                  HireBridge-Mairie de Soa &bull; Plateforme Officielle de Recrutement &amp; Gestion des Formations
+                </div>
+              </div>
+            `
+          });
+        } catch (mailErr) {
+          console.error('Erreur envoi email acceptation formation:', mailErr.message);
+        }
+
+        // B. Notification In-App (signalant la réception de la décharge par e-mail)
+        try {
+          await createNotification(
+            candidate.candidate_user_id,
+            `Décharge de formation reçue par e-mail`,
+            `Votre dossier pour la formation "${candidate.training_title}" a été accepté. Votre décharge officielle (N° ${receiptNo}) vous a été envoyée par e-mail !`,
+            'formation',
+            'trainings',
+            'fa-solid fa-envelope-open-text'
+          );
+        } catch (notifErr) {
+          console.error('Erreur notification in-app formation:', notifErr.message);
+        }
+
+      // CAS 2 : DOSSIER REFUSÉ / NON RETENU
+      } else if (status === 'REFUSEE' || status === 'REJETEE') {
+        try {
+          await transporter.sendMail({
+            from: `"HireBridge-Mairie de Soa" <${process.env.EMAIL_USER || 'no-reply@soa.cm'}>`,
+            to: candidate.candidate_email,
+            subject: ` Information concernant votre demande de formation : ${candidate.training_title}`,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 14px; background: #ffffff; overflow: hidden;">
+                <div style="background: #0f172a; padding: 20px; text-align: center; color: #ffffff;">
+                  <h2 style="margin: 0; font-size: 1.4rem;">MAIRIE DE LA COMMUNE DE SOA</h2>
+                  <p style="margin: 4px 0 0 0; font-size: 0.9rem; opacity: 0.9;">Service des Ressources Humaines &bull; Formation Municipale</p>
+                </div>
+                
+                <div style="padding: 24px; color: #1e293b; line-height: 1.6;">
+                  <p style="font-size: 1.05rem;">Bonjour <strong>${candidate.candidate_prenom} ${candidate.candidate_nom}</strong>,</p>
+                  
+                  <p>Nous vous informons que votre demande d'inscription pour la formation municipale <strong>« ${candidate.training_title} »</strong> n'a pas pu être retenue pour la présente session.</p>
+                  
+                  ${admin_notes ? `<p style="background: #fef2f2; padding: 12px; border-left: 4px solid #ef4444; font-size: 0.88rem; color: #991b1b;"><strong>Motif / Remarque administrative :</strong> ${admin_notes}</p>` : ''}
+                  
+                  <p>Nous vous remercions pour votre intérêt pour les programmes de formation de la Commune de Soa et vous invitons à consulter nos prochaines offres sur la plateforme.</p>
+                </div>
+
+                <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 16px; text-align: center; font-size: 0.78rem; color: #64748b;">
+                  <strong>COMMUNE DE SOA &bull; DIRECTION DES RESSOURCES HUMAINES</strong><br />
+                  HireBridge-Mairie de Soa
+                </div>
+              </div>
+            `
+          });
+        } catch (mErr) { console.error('Erreur email rejet formation:', mErr.message); }
+
+        try {
+          const rhAdminRes = await pool.query("SELECT id FROM users WHERE role = 'admin_rh' OR role = 'super_admin' ORDER BY id ASC LIMIT 1");
+          const senderId = rhAdminRes.rows[0]?.id || 1;
+
+          const msgSubject = ` Suite donnée à votre demande de formation : ${candidate.training_title}`;
+          const msgContent = `Bonjour ${candidate.candidate_prenom} ${candidate.candidate_nom},\n\n` +
+            `Votre demande d'inscription pour la formation municipale "${candidate.training_title}" n'a pas été retenue pour cette session.\n\n` +
+            (admin_notes ? `Motif / Remarque RH : ${admin_notes}\n\n` : '') +
+            `Cordialement,\nService des Ressources Humaines — Mairie de Soa`;
+
+          await pool.query(
+            `INSERT INTO messages (sender_id, receiver_id, content, subject, is_read, created_at)
+             VALUES ($1, $2, $3, $4, false, NOW())`,
+            [senderId, candidate.candidate_user_id, msgContent, msgSubject]
+          );
+        } catch (mErr) { console.error('Erreur message interne rejet formation:', mErr.message); }
+      }
+    }
+
     res.json({
       message: (status === 'CONFIRMEE' || status === 'ACCEPTEE')
-        ? 'Inscription confirmée et Accusé de Réception / Décharge officiel généré !'
+        ? 'Inscription confirmée et Décharge officielle envoyée par e-mail au candidat !'
         : 'Statut de la demande mis à jour.',
       application: r.rows[0]
     });
@@ -2736,107 +3016,165 @@ app.get('/api/news', async (req, res) => {
 app.post('/api/chatbot/query', async (req, res) => {
   try {
     const { message, userId } = req.body;
-    const cleanMsg = (message || '').trim();
-    const lower = cleanMsg.toLowerCase();
+    const rawMsg = (message || '').trim();
+
+    // Récupération éventuelle du prénom du candidat
+    let userFirstName = '';
+    if (userId) {
+      try {
+        const uRes = await pool.query('SELECT prenom FROM users WHERE id = $1', [userId]);
+        if (uRes.rows.length > 0 && uRes.rows[0].prenom) {
+          userFirstName = uRes.rows[0].prenom.trim();
+        }
+      } catch (e) {}
+    }
+
+    const nameLabel = userFirstName || '';
+
+    if (!rawMsg) {
+      return res.json({
+        reply: nameLabel ? `Hello ${nameLabel}, que puis-je faire pour toi aujourd'hui ? ` : "Hello, que puis-je faire pour toi aujourd'hui ? ",
+        options: ["Pièces à fournir", "Consulter les offres", "Demande de stage", "Horaires Mairie"]
+      });
+    }
+
+    // Normalisation du texte (minuscules & suppression d'accents)
+    const lower = rawMsg.toLowerCase();
+    const normalized = lower.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+    // Détection d'une salutation explicite (bonjour, salut, hello, etc.)
+    const isExplicitGreeting = 
+      normalized === 'bonjour' || normalized === 'salut' || normalized === 'hello' || 
+      normalized === 'hi' || normalized === 'coucou' || normalized === 'bonsoir' ||
+      normalized.includes('ca va') || normalized.includes('comment vas') ||
+      normalized.includes('qui es tu') || normalized.includes('presentation') || normalized.includes('presente toi');
+
     let reply = '';
     let options = [];
 
     // =========================================================================
-    // 1. FILTRE DE CONFIDENTIALITÉ STRICT (DÉTECTION DE DONNÉES SENSIBLES / SECRÈTES)
+    // 1. FILTRE DE CONFIDENTIALITÉ STRICT (Clair & Courtois)
     // =========================================================================
 
-    // A. Salaires / Rémunérations nominatives / Revenus des agents ou du Maire
     const isSalaryConfidential = 
-      (lower.includes('salaire') || lower.includes('remuneration') || lower.includes('rémunération') || lower.includes('paie') || lower.includes('gagne') || lower.includes('revenu') || lower.includes('prime')) &&
-      (lower.includes('maire') || lower.includes('agent') || lower.includes('rh') || lower.includes('adjoint') || lower.includes('directeur') || lower.includes('personnel') || lower.includes('estelle') || lower.includes('mireille') || lower.includes('employé') || lower.includes('employe') || lower.includes('fonctionnaire'));
+      (normalized.includes('salaire') || normalized.includes('remuneration') || normalized.includes('paie') || normalized.includes('gagne') || normalized.includes('revenu') || normalized.includes('prime')) &&
+      (normalized.includes('maire') || normalized.includes('agent') || normalized.includes('rh') || normalized.includes('adjoint') || normalized.includes('directeur') || normalized.includes('personnel') || normalized.includes('estelle') || normalized.includes('mireille') || normalized.includes('employe') || normalized.includes('fonctionnaire'));
 
-    // B. Mots de passe / Sécurité / Clés d'accès / Base de données / Hack
     const isSecurityConfidential = 
-      lower.includes('mot de passe') || lower.includes('password') || lower.includes('mdp') || 
-      lower.includes('code secret') || lower.includes('base de données') || lower.includes('database') ||
-      lower.includes('cle api') || lower.includes('clé api') || lower.includes('token secret') ||
-      lower.includes('identifiant admin') || lower.includes('super admin pass') || lower.includes('acces serveur') ||
-      lower.includes('accès serveur') || lower.includes('hack') || lower.includes('faille') ||
-      lower.includes('config .env') || lower.includes('cle secrète') || lower.includes('clé secrète');
+      normalized.includes('mot de passe') || normalized.includes('password') || normalized.includes('mdp') || 
+      normalized.includes('code secret') || normalized.includes('base de donnees') || normalized.includes('database') ||
+      normalized.includes('cle api') || normalized.includes('token secret') || normalized.includes('identifiant admin') || 
+      normalized.includes('acces serveur') || normalized.includes('hack') || normalized.includes('faille');
 
-    // C. Données privées d'autres candidats / Citoyens (CNI, contacts, dossiers)
     const isPrivacyConfidential = 
-      (lower.includes('autre candidat') || lower.includes('autres candidat') || 
-       lower.includes('liste des candidat') || lower.includes('liste des postulant') ||
-       (lower.includes('cni') && (lower.includes('autre') || lower.includes('candidat') || lower.includes('gens') || lower.includes('citoyen') || lower.includes('personne'))) ||
-       ((lower.includes('telephone') || lower.includes('téléphone') || lower.includes('coordonnee') || lower.includes('coordonnée') || lower.includes('contact')) && (lower.includes('autre') || lower.includes('candidat') || lower.includes('maire') || lower.includes('personnel') || lower.includes('agent'))) ||
-       lower.includes('dossier de') || lower.includes('dossier d\'un') || lower.includes('qui a postulé') || lower.includes('qui a postule') || lower.includes('adresse de')) &&
-      !lower.includes('mon dossier') && !lower.includes('ma candidature') && !lower.includes('mon profil') && !lower.includes('mes candidature') && !lower.includes('mes document') && !lower.includes('mon compte');
+      (normalized.includes('autre candidat') || normalized.includes('autres candidat') || 
+       normalized.includes('liste des candidat') || normalized.includes('liste des postulant') ||
+       (normalized.includes('cni') && (normalized.includes('autre') || normalized.includes('candidat') || normalized.includes('gens') || normalized.includes('citoyen'))) ||
+       ((normalized.includes('telephone') || normalized.includes('coordonnee') || normalized.includes('contact')) && (normalized.includes('autre') || normalized.includes('candidat') || normalized.includes('maire') || normalized.includes('personnel')))) &&
+      !normalized.includes('mon dossier') && !normalized.includes('ma candidature') && !normalized.includes('mon profil') && !normalized.includes('mes candidature') && !normalized.includes('mes document');
 
-    // D. Délibérations à huis clos / Marchés publics confidentiels / Budgets secrets
     const isMunicipalClassified = 
-      lower.includes('huis clos') || lower.includes('huis-clos') || lower.includes('secret de la mairie') ||
-      lower.includes('délibération secrète') || lower.includes('deliberation secrete') || 
-      lower.includes('marché secret') || lower.includes('document classifié') || lower.includes('budget secret') ||
-      lower.includes('pots de vin') || lower.includes('corruption') || lower.includes('fraude');
+      normalized.includes('huis clos') || normalized.includes('secret de la mairie') ||
+      normalized.includes('deliberation secrete') || normalized.includes('marche secret') || 
+      normalized.includes('document classifie') || normalized.includes('budget secret') ||
+      normalized.includes('pots de vin') || normalized.includes('corruption');
 
     if (isSalaryConfidential) {
-      reply = ` Information Confidentielle :\n\nEn application de la réglementation sur la protection des données personnelles et du statut de la fonction publique communale, les salaires nominatifs, fiches de paie et rémunérations individuelles des élus et agents municipaux sont strictement confidentiels et ne peuvent être divulgués.\n\n Pour les postes ouverts au recrutement, les tranches de rémunération légales sont indiquées sur chaque fiche de poste selon la grille communale.`;
-      options = ["Voir les offres d'emploi", "Grille de stage", "Poser une question RH"];
+      reply = `Par mesure de confidentialité et conformément aux règles de la fonction publique communale, les rémunérations individuelles et fiches de paie des élus et agents municipaux sont strictement confidentielles.\n\nEn revanche, si tu postules à une opportunité, la tranche d'indemnité ou la grille budgétaire liée au poste t'est expliquée en toute transparence par la Direction des Ressources Humaines.`;
+      options = ["Voir les offres d'emploi", "Grille des stages", "Messagerie RH"];
     } else if (isSecurityConfidential) {
-      reply = ` Sécurité & Confidentialité Système :\n\nLes identifiants d'accès, mots de passe, clés de chiffrement et paramètres techniques des infrastructures numériques de la Mairie de Soa sont strictement confidentiels et protégés.\n\n️ Si vous rencontrez un problème d'accès à votre propre compte citoyen/candidat, utilisez la fonction « Mot de passe oublié » ou contactez le Support Citoyen.`;
-      options = ["Mon Compte", "Support Citoyen", "Sécurité du profil"];
+      reply = `Pour des raisons de sécurité informatique, les mots de passe, clés d'accès et configurations de nos serveurs municipaux sont strictly protégés.\n\nSi tu as égaré ton mot de passe candidat, tu peux facilement le réinitialiser depuis la page de connexion ou contacter l'assistance.`;
+      options = ["Mot de passe oublié", "Support Citoyen", "Mon Profil"];
     } else if (isPrivacyConfidential) {
-      reply = ` Protection de la Vie Privée & Données Candidats :\n\nConformément aux lois sur la protection de la vie privée, les dossiers de candidature, coordonnées et pièces justificatives des autres postulants sont protégés par le secret professionnel et inaccessibles aux tiers.\n\n Vous pouvez à tout moment consulter et modifier votre propre dossier dans l'onglet « Mes Candidatures ».`;
+      reply = `Afin de préserver la vie privée de chaque candidat, nous ne communiquons pas d'informations sur les dossiers des autres postulants.\n\nTes propres candidatures et documents sont traités de façon strictement confidentielle et tu peux les consulter dans la rubrique « Mes Candidatures ».`;
       options = ["Mes Candidatures", "Mon Profil", "Contacter le Service RH"];
     } else if (isMunicipalClassified) {
-      reply = ` Secret Administratif Communal :\n\nLes délibérations tenues à huis clos, les procédures de passation de marchés avant publication légale et les documents de travail internes relèvent du secret administratif de la Commune de Soa.\n\n️ Tous les arrêtés municipaux, avis de concours officiels et comptes-rendus publics sont affichés sur les panneaux de l'Hôtel de Ville et dans l'onglet « Événements & Actualités ».`;
-      options = ["Calendrier municipal", "Offres officielles", "Horaires de la Mairie"];
+      reply = `Les délibérations à huis clos et documents d'instruction internes relèvent du secret administratif communal.\n\nCependant, toutes les décisions publiques, avis de concours et comptes-rendus du Conseil Municipal sont affichés à l'Hôtel de Ville et sur cette plateforme dans la rubrique « Événements ».`;
+      options = ["Événements Municipaux", "Offres d'emploi", "Horaires Mairie"];
     }
 
     // =========================================================================
-    // 2. RÉPONSES AUX QUESTIONS MUNICIPALES, RECRUTEMENT & SERVICES PUBLICS
+    // 2. RÉPONSE AUX SALUTATIONS EXPLICITES
     // =========================================================================
-    
-    // Pièces à fournir / Documents requis
-    else if (lower.includes('document') || lower.includes('pdf') || lower.includes('pièce') || lower.includes('piece') || lower.includes('fournir') || lower.includes('justificatif') || lower.includes('dossier a fournir') || lower.includes('timbre') || lower.includes('timbrée') || lower.includes('timbree')) {
-      reply = ` Pièces et Documents Requis par Type de Démarche :\n\n 1. Recrutement Emploi (CDD / CDI) :\n• Curriculum Vitae (CV) actualisé au format PDF\n• Lettre de motivation adressée à Monsieur le Maire\n• Copie lisible de la Carte Nationale d'Identité (CNI)\n• Copies certifiées conformes des diplômes requis\n\n 2. Stage Académique (3 à 6 mois) :\n• Demande manuscrite timbrée adressée à Monsieur le Maire de Soa\n• CV actualisé\n• Certificat de scolarité ou attestation d'inscription (ex: Université de Yaoundé II Soa)\n• Copie CNI\n\n 3. Stage Professionnel d'Insertion :\n• Demande manuscrite timbrée\n• CV complet et lettre d'engagement\n• Copie du diplôme le plus élevé\n• Copie CNI`;
-      options = ["Déposer une demande de stage", "Consulter les offres", "Comment postuler ?"];
+    else if (isExplicitGreeting) {
+      reply = nameLabel 
+        ? `Bonjour ${nameLabel} ! C'est un plaisir d'échanger avec toi. Que puis-je faire pour toi aujourd'hui ? ` 
+        : `Bonjour ! C'est un plaisir d'échanger avec toi. Que puis-je faire pour toi aujourd'hui ? `;
+      options = ["Pièces à fournir", "Consulter les offres", "Demande de stage", "Horaires Mairie"];
     }
 
-    // Stages académiques et professionnels
-    else if (lower.includes('stage') || lower.includes('stagiaire') || lower.includes('academique') || lower.includes('académique') || lower.includes('professionnel') || lower.includes('convention')) {
-      reply = ` Stages à la Mairie de la Commune de Soa :\n\nLa Mairie de Soa accueille les étudiants (notamment de l'Université de Yaoundé II et des instituts de la région) ainsi que les jeunes diplômés :\n\n1️⃣ Stage Académique : Destiné à la validation d'un diplôme (BTS, Licence, Master). Durée : 1 à 6 mois.\n2️⃣ Stage Professionnel : Destiné au perfectionnement et à l'insertion active. Durée : 3 à 12 mois.\n\n Dépôt 100% en ligne : Cliquez sur le bouton « Demande de Stage » dans votre tableau de bord, joignez votre CV, lettre manuscrite et attestation. Un accusé de réception horodaté vous sera délivré immédiatement !`;
-      options = ["Demande de Stage", "Pièces à fournir", "Délais de réponse"];
+    // =========================================================================
+    // 3. COMPRÉHENSION DIRECTE & FLUIDE DES INTENTIONS MUNICIPALES (STYLE CLAUDE/CHATGPT)
+    // =========================================================================
+
+    // A. Maire, Conseil Municipal, Autorités & Direction
+    else if (normalized.includes('maire') || normalized.includes('bourgmestre') || normalized.includes('conseil municipal') || normalized.includes('dirige') || normalized.includes('patron') || normalized.includes('gouverne') || normalized.includes('administration') || normalized.includes('executif')) {
+      reply = `La Mairie de la Commune de Soa est sous l'autorité de Monsieur le Maire et de son Conseil Municipal. Ils s'investissent au quotidien pour le développement local, le soutien à la jeunesse et le rayonnement de notre belle commune universitaire.\n\nL'administration s'appuie sur la Direction des Ressources Humaines et les différents services techniques pour accueillir, former et insérer les jeunes citoyens et diplômés.`;
+      options = ["Horaires Mairie", "Demander un renseignement", "Offres d'emploi"];
     }
 
-    // Offres d'emploi, concours, postes ouverts
-    else if (lower.includes('offre') || lower.includes('emploi') || lower.includes('poste') || lower.includes('recrutement') || lower.includes('concours') || lower.includes('embauche') || lower.includes('job') || lower.includes('vacant') || lower.includes('travailler a la mairie')) {
-      // Récupérer le nombre d'offres actives en base
+    // B. État Civil, Légalisations, Actes de naissance & Certificats
+    else if (normalized.includes('legalis') || normalized.includes('etat civil') || normalized.includes('acte de naissance') || normalized.includes('mariage') || normalized.includes('deces') || normalized.includes('certificat') || normalized.includes('timbre') || normalized.includes('duplicata') || normalized.includes('residence')) {
+      reply = `Voici les infos clés pour tes démarches d'état civil et de légalisation à la Mairie de Soa :\n\n• Légalisations de documents : Présente l'original avec sa copie lisible, muni d'un timbre fiscal réglementaire.\n• Actes de naissance & Certificats : Délivrés au Bureau Central de l'État Civil à l'Hôtel de Ville (du Lundi au Vendredi, 07h30 — 15h30).\n• Permanence d'urgence : Une équipe d'astreinte est assurée le week-end pour les déclarations de naissance et décès.`;
+      options = ["Horaires Mairie", "Localisation Mairie", "Messagerie RH"];
+    }
+
+    // C. Stages (Académiques, Professionnels, Vacances) & Gratifications/Transports
+    else if (normalized.includes('stage') || normalized.includes('stagiaire') || normalized.includes('academique') || normalized.includes('professionnel') || normalized.includes('vacance') || normalized.includes('gratification') || normalized.includes('indemnite') || normalized.includes('transport') || normalized.includes('paye') || normalized.includes('remunere') || normalized.includes('remuneration') || normalized.includes('convention')) {
+      reply = `La Mairie de Soa accueille avec enthousiasme les étudiants (notamment de l'Université de Yaoundé II Soa) et les jeunes diplômés :\n\n- Stage Académique : Pour valider un diplôme (BTS, Licence, Master) — durée de 1 à 6 mois.\n- Stage Professionnel : Pour acquérir une expérience pratique solide — durée de 3 à 12 mois.\n- Stage de Vacances : Dédié aux jeunes résidents de Soa en période estivale.\n\nGratification & Transports : Conformément au règlement municipal, les stagiaires peuvent bénéficier d'une prise en charge des indemnités de déplacement selon les missions attribuées.\n\nPour postuler, c'est très simple : clique sur « Demande de Stage » dans ton tableau de bord !`;
+      options = ["Demande de Stage", "Pièces à fournir", "Suivi de dossier"];
+    }
+
+    // D. Offres d'emploi, concours, embauche & travail
+    else if (normalized.includes('offre') || normalized.includes('emploi') || normalized.includes('poste') || normalized.includes('recrutement') || normalized.includes('concours') || normalized.includes('embauche') || normalized.includes('job') || normalized.includes('travail') || normalized.includes('travailler') || normalized.includes('vacant') || normalized.includes('postuler')) {
       let activeJobsCount = 0;
       try {
         const jRes = await pool.query("SELECT COUNT(*) as count FROM jobs WHERE status = 'actif'");
         activeJobsCount = parseInt(jRes.rows[0].count, 10);
       } catch (e) {}
 
-      reply = ` Recrutement & Postes Vacants à la Mairie de Soa :\n\nIl y a actuellement ${activeJobsCount > 0 ? activeJobsCount + ' offre(s) active(s)' : 'des opportunités régulières'} publiées par le Service des Ressources Humaines.\n\n Fonctionnalités de la plateforme :\n• Calcul automatique du score d'adéquation avec votre profil (compétences, diplômes)\n• Postulation directe en 1 clic avec votre dossier numérique\n• Réception d'un accusé de réception officiel (décharge avec cachet électronique)`;
-      options = ["Consulter les offres", "Mon Profil", "Suivi de candidature"];
+      reply = `Il y a actuellement ${activeJobsCount > 0 ? activeJobsCount + ' offre(s) d\'emploi active(s)' : 'des opportunités régulières'} publiées par le Service des Ressources Humaines de la Mairie de Soa.\n\nSur HireBridge Soa :\n• Ton profil est analysé pour afficher automatiquement ton niveau d'adéquation avec le poste.\n• Tu postules en 1 clic avec tes pièces numériques.\n• Tu reçois immédiatement ta décharge officielle avec cachet électronique dès la soumission.`;
+      options = ["Consulter les offres", "Déposer un dossier", "Mon Profil"];
     }
 
-    // Formations municipales gratuites
-    else if (lower.includes('formation') || lower.includes('atelier') || lower.includes('certificat') || lower.includes('attestation de formation') || lower.includes('bureautique') || lower.includes('salubrite') || lower.includes('salubrité') || lower.includes('ville propre')) {
+    // E. Pièces et documents requis
+    else if (normalized.includes('piece') || normalized.includes('document') || normalized.includes('pdf') || normalized.includes('fournir') || normalized.includes('justificatif') || normalized.includes('dossier a fournir') || normalized.includes('constituer')) {
+      reply = `Voici le récapitulatif clair des pièces à préparer selon ta démarche :\n\n 1. Pour un Emploi (CDD / CDI) :\n• Curriculum Vitae (CV) actualisé au format PDF\n• Lettre de motivation adressée à Monsieur le Maire\n• Copie lisible de ta Carte Nationale d'Identité (CNI)\n• Copies certifiées conformes des diplômes requis\n\n 2. Pour un Stage (Académique ou Professionnel) :\n• Demande manuscrite timbrée adressée à Monsieur le Maire de Soa\n• CV actualisé\n• Certificat de scolarité ou attestation d'inscription universitaire\n• Copie de la CNI\n\nTu peux téléverser tous tes fichiers en toute sécurité en PDF depuis ton espace candidat.`;
+      options = ["Déposer ma demande", "Voir les offres", "Mon Profil"];
+    }
+
+    // F. Formations municipales gratuites
+    else if (normalized.includes('formation') || normalized.includes('gratuit') || normalized.includes('atelier') || normalized.includes('attestation de formation') || normalized.includes('bureautique') || normalized.includes('salubrite') || normalized.includes('ville propre') || normalized.includes('apprentissage')) {
       let trCount = 0;
       try {
         const tRes = await pool.query("SELECT COUNT(*) as count FROM trainings WHERE is_active = true");
         trCount = parseInt(tRes.rows[0].count, 10);
       } catch (e) {}
 
-      reply = `️ Formations Municipales Gratuites de la Commune de Soa :\n\nLa Mairie organise des sessions de renforcement de capacités ouvertes gratuitement aux citoyens et étudiants (${trCount > 0 ? trCount + ' session(s) disponible(s)' : 'sessions régulières'}) :\n\n•  Bureautique & Outils Numériques Administratifs\n•  Salubrité & Soa Ville Propre (Gestion environnementale)\n•  Procédures d'État Civil & Accueil des Usagers\n•  Fiscalité Locale & Recouvrement Municipal\n\n️ Une Attestation Officielle de Formation Municipale est délivrée à l'issue de chaque session validée.`;
-      options = ["Voir les Formations", "Mes Inscriptions", "Demander un renseignement"];
+      reply = `La Commune de Soa offre des programmes de formations gratuites pour développer les compétences de sa jeunesse (${trCount > 0 ? trCount + ' session(s) disponible(s)' : 'programmes réguliers'}) !\n\nDomaines couverts :\n• Bureautique & Outils Numériques Administratifs\n• Salubrité Communale & Soa Ville Propre\n• Procédures d'État Civil & Accueil des Usagers\n• Fiscalité Locale & Recouvrement Municipal\n\nUne Attestation Officielle de Formation Municipale te sera délivrée à l'issue de chaque session validée.`;
+      options = ["Voir les Formations", "Mes Inscriptions", "Messagerie RH"];
     }
 
-    // Suivi de candidature / Décharge officielle / Accusé de réception
-    else if (lower.includes('suivi') || lower.includes('candidature') || lower.includes('dossier') || lower.includes('statut') || lower.includes('decharge') || lower.includes('décharge') || lower.includes('accuse') || lower.includes('accusé') || lower.includes('etat avancement')) {
+    // G. Suivi des dossiers & Décharge Officielle
+    else if (normalized.includes('suivi') || normalized.includes('statut') || normalized.includes('decharge') || normalized.includes('accuse') || normalized.includes('delai') || normalized.includes('quand') || normalized.includes('avancement')) {
       if (userId) {
         let appCount = 0;
         let lastApp = null;
         try {
-          const aRes = await pool.query("SELECT a.status, a.application_type, a.created_at, j.title as job_title FROM applications a LEFT JOIN jobs j ON a.job_id = j.id WHERE a.user_id = $1 ORDER BY a.created_at DESC LIMIT 1", [userId]);
+          const aRes = await pool.query(`
+            SELECT a.status, a.application_type, a.created_at, a.discharge_sent,
+                   COALESCE(j.title, CASE 
+                     WHEN a.application_type = 'stage_academique' THEN 'Stage Académique'
+                     WHEN a.application_type = 'stage_professionnel' THEN 'Stage Professionnel'
+                     WHEN a.application_type = 'stage_vacances' THEN 'Stage de Vacances'
+                     ELSE 'Candidature Municipale'
+                   END) as job_title 
+            FROM applications a 
+            LEFT JOIN jobs j ON a.job_id = j.id 
+            WHERE a.user_id = $1 
+            ORDER BY a.created_at DESC LIMIT 1
+          `, [userId]);
+
           if (aRes.rows.length > 0) {
             lastApp = aRes.rows[0];
             const cRes = await pool.query("SELECT COUNT(*) as count FROM applications WHERE user_id = $1", [userId]);
@@ -2845,62 +3183,85 @@ app.post('/api/chatbot/query', async (req, res) => {
         } catch (e) {}
 
         if (lastApp) {
-          reply = ` Suivi de vos Dossiers en Temps Réel :\n\nVous avez ${appCount} candidature(s) enregistrée(s).\n\n Dernier dossier déposé :\n• Type : ${lastApp.application_type === 'stage' ? 'Demande de Stage' : 'Candidature Emploi'}\n• Intitulé : ${lastApp.job_title || 'Dossier Municipal'}\n• Statut : ${lastApp.status || 'En cours d examen'}\n• Date de dépôt : ${new Date(lastApp.created_at).toLocaleDateString('fr-FR')}\n\n Vous pouvez télécharger votre Décharge Officielle Horodatée avec QR Code depuis l'onglet « Mes Candidatures ».`;
+          const formattedDate = new Date(lastApp.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+          const statusMap = {
+            'en_attente': 'Dossier transmis — En attente d\'examen',
+            'valide': 'Validé & Décharge transmise par e-mail',
+            'retenu': 'Candidature Retenue / Sélectionné',
+            'rejete': 'Non retenu (Motifs explicites communiqués)'
+          };
+          const statusText = statusMap[lastApp.status] || lastApp.status;
+
+          reply = `Voici le point exact sur tes démarches auprès de la Mairie de Soa :\n\nTu as au total ${appCount} candidature(s) enregistrée(s).\n\nDernier dossier enregistré :\n• Intitulé : ${lastApp.job_title}\n• Statut actuel : ${statusText}\n• Date de dépôt : ${formattedDate}\n\nTa décharge officielle horodatée est disponible à tout moment dans ton espace « Mes Candidatures ».`;
         } else {
-          reply = ` Vous n'avez pas encore déposé de candidature ou de demande de stage sur votre compte.\n\nConsultez nos offres ouvertes ou déposez une demande de stage en quelques clics !`;
+          reply = `Tu n'as pas encore déposé de candidature ou de demande de stage sur ton compte.\n\nN'hésite pas à parcourir nos offres d'emploi ou à soumettre une demande de stage en quelques clics !`;
         }
       } else {
-        reply = ` Suivi de Dossier : Connectez-vous à votre espace candidat pour accéder au tableau de suivi en direct et télécharger vos accusés de réception officiels.`;
+        reply = `Pour consulter l'état d'avancement exact de ton dossier et télécharger ta décharge officielle, connecte-toi à ton compte et clique sur « Mes Candidatures ».`;
       }
       options = ["Mes Candidatures", "Demande de Stage", "Messagerie RH"];
     }
 
-    // Horaires, Localisation & Coordonnées de la Mairie de Soa
-    else if (lower.includes('horaire') || lower.includes('heure') || lower.includes('ouverture') || lower.includes('fermeture') || lower.includes('adresse') || lower.includes('localisation') || lower.includes('situer') || lower.includes('ou se trouve') || lower.includes('contact') || lower.includes('telephone') || lower.includes('téléphone') || lower.includes('email') || lower.includes('mail') || lower.includes('ouvert')) {
-      reply = `️ Mairie de la Commune de Soa (Région du Centre — Cameroun) :\n\n Adresse & Localisation :\n• Hôtel de Ville de Soa, Département de la Mefou-et-Afamba\n• Située face au campus principal de l'Université de Yaoundé II Soa (à 15 min de Yaoundé)\n\n Horaires d'Ouverture des Services :\n• Du Lundi au Vendredi : 07h30 — 15h30 (Journée continue)\n• Samedi & Dimanche : Bureaux fermés (Permanence d'astreinte État Civil assurée pour les déclarations de naissance/décès)\n\n Contacts Institutionnels :\n• E-mail officiel : contact@mairie-soa.cm\n• Courrier : B.P. 12 Soa, Cameroun`;
-      options = ["Calendrier municipal", "Services d'état civil", "Contacter le Service RH"];
+    // H. Explication des rejets & possibilité de recours
+    else if (normalized.includes('rejet') || normalized.includes('refus') || normalized.includes('motif') || normalized.includes('pourquoi') || normalized.includes('recours') || normalized.includes('resoumettre') || normalized.includes('corriger') || normalized.includes('echoue')) {
+      reply = `Si ton dossier fait l'objet d'un rejet, voici la procédure transparente mise en place par la Mairie de Soa :\n\n1. Notification détaillée : Tu reçois un e-mail officiel et une notification in-app expliquant les motifs précis du rejet (ex: pièce manquante, diplôme non certifié, inadéquation).\n2. Droit à la régularisation : Si la commission RH l'autorise, tu peux corriger ton dossier et le soumettre à nouveau depuis « Mes Candidatures ».\n3. Échange direct : Tu peux écrire directement à un conseiller via notre messagerie interne.`;
+      options = ["Mes Candidatures", "Messagerie RH", "Support Citoyen"];
     }
 
-    // Messagerie RH & Échanges avec les agents communaux
-    else if (lower.includes('messagerie') || lower.includes('ecrire') || lower.includes('écrire') || lower.includes('agent rh') || lower.includes('parler') || lower.includes('discuter') || lower.includes('reponse rh') || lower.includes('réponse rh') || lower.includes('permanence rh')) {
-      reply = ` Messagerie Directe avec le Service RH :\n\nVous disposez d'un canal de discussion officiel dans l'onglet « Messagerie » de votre tableau de bord :\n\n•  Permanence RH : Les agents RH répondent durant les heures de service (07h30 — 15h30).\n•  Hors permanence : Vos messages sont horodatés et placés en file prioritaire.\n•  Vous pouvez transmettre des justificatifs ou documents complémentaires directement dans le fil de discussion.`;
-      options = ["Ouvrir la Messagerie", "Horaires Permanence", "Support Citoyen"];
+    // I. Horaires, Localisation, Transport & Accès (Campus UY2 / Soa)
+    else if (normalized.includes('horaire') || normalized.includes('heure') || normalized.includes('ouverture') || normalized.includes('fermeture') || normalized.includes('adresse') || normalized.includes('localisation') || normalized.includes('situer') || normalized.includes('ou se trouve') || normalized.includes('contact') || normalized.includes('telephone') || normalized.includes('email') || normalized.includes('mail') || normalized.includes('ouvert') || normalized.includes('transport') || normalized.includes('venir') || normalized.includes('universite') || normalized.includes('uy2')) {
+      reply = `Voici les coordonnées et accès pratiques à l'Hôtel de Ville de Soa :\n\n Localisation :\n• Située au cœur de Soa (Mèfou-et-Afamba, Région du Centre).\n• Juste en face du Campus Principal de l'Université de Yaoundé II Soa (à 15-20 min de Yaoundé en taxi/brousse).\n\n Horaires :\n• Du Lundi au Vendredi : 07h30 — 15h30 (Journée continue).\n• Samedi & Dimanche : Bureaux administratifs fermés (Service d'astreinte État Civil pour déclarations de naissances/décès).\n\n Contact Direct : contact@mairie-soa.cm / rh@soa.cm`;
+      options = ["Messagerie RH", "Voir les offres", "Événements Municipaux"];
     }
 
-    // Support, Réclamations & Tickets Citoyens
-    else if (lower.includes('support') || lower.includes('aide') || lower.includes('ticket') || lower.includes('reclamation') || lower.includes('réclamation') || lower.includes('probleme') || lower.includes('problème') || lower.includes('bug') || lower.includes('erreur') || lower.includes('bloque') || lower.includes('bloqué')) {
-      reply = `️ Aide & Support Citoyen Soa :\n\nSi vous rencontrez une difficulté technique ou administrative :\n\n1. Ouvrez l'onglet « Aide & Support »\n2. Cliquez sur « Ouvrir un Ticket d'Assistance »\n3. Décrivez votre situation et joignez une capture d'écran si nécessaire\n4. Un numéro de ticket unique (#TKT-XXXX) vous est attribué pour le suivi par l'équipe technique de la Mairie.`;
-      options = ["Ouvrir un Ticket", "Foire aux Questions", "Contacter le Service RH"];
+    // J. Messagerie RH & Discussion Directe
+    else if (normalized.includes('rh') || normalized.includes('messagerie') || normalized.includes('ecrire') || normalized.includes('agent') || normalized.includes('parler') || normalized.includes('discuter') || normalized.includes('permanence') || normalized.includes('joindre')) {
+      reply = `Tu peux dialoguer en direct avec nos chargés de recrutement et agents administratifs !\n\nRends-toi dans la rubrique « Messagerie RH » de ton tableau de bord :\n• En journée (07h30 — 15h30) : Réponses en temps réel par l'équipe d'astreinte.\n• En dehors de ces heures : Laisse ton message, il sera traité dès la réouverture des bureaux.`;
+      options = ["Ouvrir la Messagerie RH", "Horaires Mairie", "Support Citoyen"];
     }
 
-    // Événements municipaux & Calendrier
-    else if (lower.includes('evenement') || lower.includes('événement') || lower.includes('calendrier') || lower.includes('agenda') || lower.includes('date') || lower.includes('conseil municipal') || lower.includes('foire') || lower.includes('fete') || lower.includes('fête')) {
-      reply = ` Calendrier & Événements Municipaux de Soa :\n\nConsultez l'agenda officiel de la commune pour retrouver les conseils municipaux ouverts au public, les journées citoyennes de salubrité, les carrefours de l'emploi universitaire et les foires agro-pastorales du terroir.\n\n Vous pouvez confirmer votre présence en un clic et télécharger le rappel au format .ics pour votre agenda Google ou Apple.`;
-      options = ["Voir le Calendrier", "Mes Inscriptions", "Horaires Mairie"];
+    // K. Support Technique, Bugs & Tickets
+    else if (normalized.includes('bug') || normalized.includes('erreur') || normalized.includes('bloque') || normalized.includes('marche pas') || normalized.includes('fonctionne pas') || normalized.includes('probleme') || normalized.includes('ticket') || normalized.includes('reclamation') || normalized.includes('support') || normalized.includes('aide')) {
+      reply = `Si tu rencontres le moindre souci technique sur la plateforme :\n\n1. Ouvre l'onglet « Aide & Support ».\n2. Remplis le formulaire en décrivant le problème.\n3. Un ticket unique (#TKT-XXXX) te sera attribué et nos techniciens prendront en charge ta demande.`;
+      options = ["Aide & Support", "Messagerie RH", "Mon Profil"];
     }
 
-    // Profil, CV, Diplômes, Paramètres
-    else if (lower.includes('profil') || lower.includes('cv') || lower.includes('diplome') || lower.includes('diplôme') || lower.includes('competence') || lower.includes('compétence') || lower.includes('photo') || lower.includes('avatar') || lower.includes('modifier mon compte') || lower.includes('parametre') || lower.includes('paramètre')) {
-      reply = ` Gestion de votre Profil Candidat :\n\nDans l'onglet « Mon Profil », vous pouvez :\n• Mettre à jour vos compétences et votre biographie\n• Ajouter vos diplômes et certifications avec justificatifs PDF\n• Changer votre photo de profil / avatar\n• Télécharger votre CV officiel certifié par la Mairie de Soa\n• Ajuster vos paramètres de notifications push et e-mail.`;
-      options = ["Mon Profil", "Paramètres du compte", "Mes Diplômes"];
+    // L. Événements Municipaux
+    else if (normalized.includes('evenement') || normalized.includes('agenda') || normalized.includes('calendrier') || normalized.includes('conseil') || normalized.includes('foire') || normalized.includes('fete') || normalized.includes('actualite') || normalized.includes('action')) {
+      reply = `Retrouve l'agenda de la commune dans la rubrique « Événements & Actualités » :\n• Conseils municipaux ouverts au public\n• Forums de l'emploi étudiant & carrefours des métiers\n• Journées citoyennes « Soa Ville Propre »`;
+      options = ["Événements Municipaux", "Formations Gratuites", "Offres d'emploi"];
     }
 
-    // Salutations, Présentation & Politesse
-    else if (lower.includes('bonjour') || lower.includes('salut') || lower.includes('bonsoir') || lower.includes('coucou') || lower.includes('merci') || lower.includes('qui es tu') || lower.includes('qui es-tu') || lower.includes('presentation') || lower.includes('présentation')) {
-      reply = `️ Service d'Assistance Municipale 24h/24 — Mairie de Soa :\n\nBienvenue. Je suis à votre entière disposition pour vous guider sur les offres d'emploi, les stages académiques/pro, les formations gratuites, le suivi de vos dossiers et les démarches communales.\n\nQue souhaitez-vous savoir ?`;
-      options = ["Pièces à fournir", "Consulter les offres", "Demande de Stage", "Horaires Mairie"];
+    // M. Profil & CV
+    else if (normalized.includes('profil') || normalized.includes('compte') || normalized.includes('modifier') || normalized.includes('diplome') || normalized.includes('photo') || normalized.includes('avatar') || normalized.includes('fiche candidate')) {
+      reply = `Depuis l'onglet « Mon Profil », tu peux :\n• Mettre à jour tes diplômes et attestations certifiées\n• Ajuster tes compétences et tes expériences\n• Télécharger ta Fiche Officielle du Candidat certifiée (PDF A4)`;
+      options = ["Mon Profil", "Mes Candidatures", "Consulter les offres"];
     }
 
-    // Question générale / Fallback
+    // N. DYNAMIQUE FALLBACK CHALEUREUX & FLUIDE (STYLE CLAUDE / CHATGPT)
     else {
-      reply = `️ Assistant Mairie de Soa 24h/24 :\n\nJe peux vous renseigner sur :\n•  Les pièces à fournir pour les recrutements et stages\n•  Les offres d'emploi ouvertes (CDD / CDI)\n•  Les demandes de stages académiques et professionnels\n•  Les formations municipales gratuites\n•  Le suivi de vos candidatures et décharges officielles\n•  Les horaires et coordonnées de l'Hôtel de Ville de Soa\n\nN'hésitez pas à poser une question précise ou à choisir une option ci-dessous !`;
-      options = ["Pièces à fournir", "Voir les offres", "Demande de Stage", "Suivi de dossier"];
+      let topicHint = "sur les services de la Mairie de Soa";
+      if (normalized.includes('delai') || normalized.includes('temps') || normalized.includes('duree') || normalized.includes('quand') || normalized.includes('combien de temps')) {
+        topicHint = "concernant les délais de traitement des dossiers communaux";
+      } else if (normalized.includes('prix') || normalized.includes('cout') || normalized.includes('payant') || normalized.includes('frais') || normalized.includes('combien')) {
+        topicHint = "concernant les tarifs et frais de démarches à la Mairie de Soa";
+      } else if (normalized.includes('urbanisme') || normalized.includes('terrain') || normalized.includes('permis') || normalized.includes('construction')) {
+        topicHint = "concernant l'urbanisme ou l'aménagement à Soa";
+      } else if (normalized.includes('etudiant') || normalized.includes('ecole') || normalized.includes('universite') || normalized.includes('fac') || normalized.includes('uy2')) {
+        topicHint = "concernant la vie étudiante et les services aux jeunes à Soa";
+      }
+
+      reply = `C'est une très bonne question ${topicHint} !\n\nConcernant ta demande (« ${rawMsg.length > 60 ? rawMsg.substring(0, 60) + '...' : rawMsg} ») :\n\n• Pour une démarche administrative ou un renseignement sur place, les bureaux de la Mairie de Soa t'accueillent du lundi au vendredi (07h30 — 15h30).\n• Pour tes candidatures ou un échange direct avec l'équipe RH, tu peux écrire via l'onglet « Messagerie RH ».\n• Si tu as besoin d'une assistance technique, utilise la rubrique « Aide & Support ».\n\nN'hésite pas si tu souhaites préciser ta question !`;
+      options = ["Messagerie RH", "Aide & Support", "Consulter les offres", "Horaires Mairie"];
     }
 
     res.json({ reply, options });
   } catch (err) {
     console.error('Erreur /api/chatbot/query:', err);
-    res.status(500).json({ reply: 'Désolé, une erreur temporaire est survenue. Veuillez reformuler votre question.' });
+    res.json({ 
+      reply: "Bonjour ! Excusez-moi, une petite baisse de réseau est survenue. Veuillez m'excuser et poser à nouveau votre question, je me ferai une joie de vous répondre !",
+      options: ["Pièces à fournir", "Consulter les offres", "Demande de Stage", "Horaires Mairie"]
+    });
   }
 });
 
@@ -3218,6 +3579,20 @@ async function createNotification(userId, title, message, type = 'information', 
     `, [userId, title, message, type, actionTab, icon]);
   } catch (err) {
     console.error('Erreur createNotification:', err.message);
+  }
+}
+
+// Fonction utilitaire pour notifier tous les administrateurs RH & SuperAdmins
+async function notifyHrAdmins(title, message, type = 'candidature', actionTab = 'applications', icon = 'fa-solid fa-user-plus') {
+  try {
+    const hrUsers = await pool.query(
+      "SELECT id FROM users WHERE role = 'admin_rh' OR role = 'super_admin'"
+    );
+    for (const hr of hrUsers.rows) {
+      await createNotification(hr.id, title, message, type, actionTab, icon);
+    }
+  } catch (err) {
+    console.error('Erreur notifyHrAdmins:', err.message);
   }
 }
 
@@ -3541,9 +3916,13 @@ app.get('/api/support/tickets/candidate/:userId', async (req, res) => {
 app.post('/api/support/tickets', async (req, res) => {
   try {
     const { userId, category, subject, message, priority } = req.body;
-    if (!userId || !category || !subject || !message) {
+    if (!userId || !category || !message) {
       return res.status(400).json({ message: 'Veuillez renseigner tous les champs obligatoires du ticket.' });
     }
+
+    const finalSubject = subject && subject.trim() 
+      ? subject.trim() 
+      : `${category || 'Demande'} - ${message.trim().substring(0, 40)}${message.trim().length > 40 ? '...' : ''}`;
 
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
     const ticketNumber = `SOA-TICKET-${new Date().getFullYear()}-${randomSuffix}`;
@@ -3555,9 +3934,9 @@ app.post('/api/support/tickets', async (req, res) => {
     `, [
       userId,
       ticketNumber,
-      category,
-      subject,
-      message,
+      category || 'Dossier & Candidature',
+      finalSubject,
+      message.trim(),
       priority || 'normale'
     ]);
 
@@ -3567,11 +3946,24 @@ app.post('/api/support/tickets', async (req, res) => {
     await createNotification(
       userId,
       `Ticket de support ouvert (${ticketNumber})`,
-      `Votre demande d'assistance concernant "${subject}" a été transmise aux services municipaux de Soa.`,
+      `Votre demande d'assistance concernant "${finalSubject}" a été transmise aux services municipaux de Soa.`,
       'information',
       'support',
       'fa-solid fa-headset'
     );
+
+    // Notification automatique pour les admins RH
+    try {
+      await notifyHrAdmins(
+        `Nouveau ticket support (${ticketNumber})`,
+        `Un nouveau ticket de support (${category}) a été ouvert : "${finalSubject}".`,
+        'support',
+        'support',
+        'fa-solid fa-headset'
+      );
+    } catch (hrNotifErr) {
+      console.error('Erreur notifyHrAdmins ticket:', hrNotifErr.message);
+    }
 
     res.status(201).json({
       message: 'Votre ticket d\'assistance a été enregistré avec succès ! Un agent municipal traitera votre demande dans les plus brefs délais.',
@@ -4064,5 +4456,5 @@ app.listen(PORT, '0.0.0.0', () => {
       console.log(' Compte promu Super Admin : ' + superEmail);
     }
   })
-  .catch(e => console.log('ℹ️ Migration info:', e.message));
+  .catch(e => console.log('[Migration info]:', e.message));
 });
