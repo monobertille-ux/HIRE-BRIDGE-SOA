@@ -114,6 +114,9 @@ app.post('/api/login', async (req, res) => {
     if (result.rows.length === 0 || !(await bcrypt.compare(password, result.rows[0].password_hash)))
       return res.status(400).json({ message: 'Email ou mot de passe incorrect.' });
     const user = result.rows[0];
+    if (user.status === 'bloqué' || user.is_blocked === true) {
+      return res.status(403).json({ message: "Votre compte candidat a été suspendu par l'administration des Ressources Humaines. Veuillez contacter le support municipal pour toute réclamation." });
+    }
     const token = jwt.sign({ id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET || 'SECRET_KEY_PROVISOIRE', { expiresIn: '24h' });
     res.json({ message: 'Connexion réussie !', token, user: { id: user.id, nom: user.nom, prenom: user.prenom, email: user.email, role: user.role, avatar_url: user.avatar_url, region: user.region, ville: user.ville } });
@@ -137,6 +140,9 @@ const handleGoogleAuth = async (req, res) => {
       )).rows[0];
       await pool.query(`INSERT INTO candidate_profiles(user_id,title,skills,experience_years,education_level,completion_percentage) VALUES($1,'Candidat Google',ARRAY['Communication','Bureautique'],1,'Bac / Licence',65)`, [user.id]);
     } else { user = userResult.rows[0]; }
+    if (user.status === 'bloqué' || user.is_blocked === true) {
+      return res.status(403).json({ message: "Votre compte candidat a été suspendu par l'administration des Ressources Humaines. Veuillez contacter le support municipal pour toute réclamation." });
+    }
     const token = jwt.sign({ id: user.id, email: user.email, role: user.role || 'candidat' },
       process.env.JWT_SECRET || 'SECRET_KEY_PROVISOIRE', { expiresIn: '24h' });
 
@@ -2143,6 +2149,125 @@ app.put('/api/interviews/:id/status', async (req, res) => {
   } catch (err) {
     console.error('Erreur PUT /api/interviews/status:', err);
     res.status(500).json({ message: 'Erreur mise à jour statut entretien.' });
+  }
+});
+
+// Reprogrammer / Modifier la date et heure d'un entretien vidéo (Admin RH)
+app.put('/api/interviews/:id/reschedule', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { scheduledAt, notes } = req.body;
+
+    if (!scheduledAt) {
+      return res.status(400).json({ message: 'Date et heure de l entretien requises.' });
+    }
+
+    // 1. Récupérer l'entretien existant
+    const intRes = await pool.query(`
+      SELECT i.*, u.email as candidate_email, u.nom as candidate_nom, u.prenom as candidate_prenom
+      FROM interviews i
+      LEFT JOIN users u ON (i.candidate_id = u.id OR i.user_id = u.id)
+      WHERE i.id = $1
+    `, [id]);
+
+    if (intRes.rows.length === 0) {
+      return res.status(404).json({ message: 'Entretien introuvable.' });
+    }
+
+    const currentInt = intRes.rows[0];
+    const targetUserId = currentInt.candidate_id || currentInt.user_id;
+
+    // 2. Mettre à jour l'entretien
+    const updatedRes = await pool.query(`
+      UPDATE interviews
+      SET scheduled_at = $1,
+          notes = COALESCE($2, notes),
+          status = 'programme'
+      WHERE id = $3
+      RETURNING *;
+    `, [scheduledAt, notes || null, id]);
+
+    const updatedInterview = updatedRes.rows[0];
+
+    // Formater la date et heure pour la notification
+    const schedDateObj = new Date(scheduledAt);
+    const dateFormatted = schedDateObj.toLocaleDateString('fr-FR', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+    const timeFormatted = schedDateObj.toLocaleTimeString('fr-FR', {
+      hour: '2-digit', minute: '2-digit'
+    });
+
+    // 3. Notifier le candidat in-app
+    if (targetUserId) {
+      try {
+        await createNotification(
+          targetUserId,
+          'Entretien Vidéo Reprogrammé',
+          `Votre entretien visio a été déplacé au ${dateFormatted} à ${timeFormatted}. Veuillez consulter l'onglet Mes Entretiens.`,
+          'recrutement',
+          'interviews',
+          'fa-solid fa-clock-rotate-left'
+        );
+      } catch (nErr) {
+        console.error('Erreur notification reschedule:', nErr);
+      }
+    }
+
+    res.json({
+      message: 'Date et heure de l entretien visio modifiées avec succès !',
+      interview: updatedInterview
+    });
+  } catch (err) {
+    console.error('Erreur PUT /api/interviews/:id/reschedule:', err);
+    res.status(500).json({ message: 'Erreur lors de la modification de l entretien.' });
+  }
+});
+
+// Supprimer / Annuler un entretien vidéo (Admin RH)
+app.delete('/api/interviews/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 1. Récupérer l'entretien avant suppression pour notifier le candidat
+    const intRes = await pool.query(`
+      SELECT i.*, u.email as candidate_email, u.nom as candidate_nom, u.prenom as candidate_prenom
+      FROM interviews i
+      LEFT JOIN users u ON (i.candidate_id = u.id OR i.user_id = u.id)
+      WHERE i.id = $1
+    `, [id]);
+
+    if (intRes.rows.length === 0) {
+      return res.status(404).json({ message: 'Entretien introuvable ou déjà supprimé.' });
+    }
+
+    const currentInt = intRes.rows[0];
+    const targetUserId = currentInt.candidate_id || currentInt.user_id;
+
+    // 2. Supprimer la ligne de la table interviews
+    await pool.query('DELETE FROM interviews WHERE id = $1', [id]);
+
+    // 3. Notifier le candidat in-app
+    if (targetUserId) {
+      try {
+        const schedDate = new Date(currentInt.scheduled_at).toLocaleDateString('fr-FR');
+        await createNotification(
+          targetUserId,
+          'Entretien Vidéo Annulé',
+          `Votre entretien vidéo prévu le ${schedDate} a été annulé par le service RH.`,
+          'information',
+          'interviews',
+          'fa-solid fa-trash-can'
+        );
+      } catch (nErr) {
+        console.error('Erreur notification delete interview:', nErr);
+      }
+    }
+
+    res.json({ message: 'L entretien vidéo a été supprimé avec succès.' });
+  } catch (err) {
+    console.error('Erreur DELETE /api/interviews/:id:', err);
+    res.status(500).json({ message: 'Erreur lors de la suppression de l entretien.' });
   }
 });
 
@@ -4362,6 +4487,310 @@ app.get('/api/superadmin/audit-logs', async (req, res) => {
 // ==========================================
 // LANCEMENT SERVEUR + MIGRATIONS
 // ==========================================
+
+// ==========================================
+// GESTION DES CANDIDATS (ADMIN RH)
+// ==========================================
+
+// 1. Obtenir la liste complète des candidats avec statistiques & provenance
+app.get('/api/admin/candidates', verifyToken, async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        u.id,
+        u.nom,
+        u.prenom,
+        u.email,
+        u.phone,
+        u.genre,
+        COALESCE(u.ville, cp.ville, 'Soa') AS ville,
+        COALESCE(u.region, cp.region, 'Centre (Soa / Yaoundé)') AS region,
+        COALESCE(u.status, 'actif') AS status,
+        COALESCE(u.is_blocked, false) AS is_blocked,
+        u.avatar_url,
+        u.created_at,
+        cp.title AS profile_title,
+        cp.education_level,
+        cp.skills,
+        cp.cv_url,
+        (SELECT COUNT(*) FROM applications a WHERE a.user_id = u.id) AS total_applications,
+        (
+          SELECT COUNT(*) 
+          FROM applications a 
+          LEFT JOIN jobs j ON a.job_id = j.id 
+          WHERE a.user_id = u.id AND (j.type ILIKE '%stage%' OR j.title ILIKE '%stage%' OR a.job_id IS NULL)
+        ) AS stage_requests,
+        (
+          SELECT COUNT(*) 
+          FROM applications a 
+          LEFT JOIN jobs j ON a.job_id = j.id 
+          WHERE a.user_id = u.id AND (j.type NOT ILIKE '%stage%' AND j.title NOT ILIKE '%stage%' AND a.job_id IS NOT NULL)
+        ) AS job_applications
+      FROM users u
+      LEFT JOIN candidate_profiles cp ON u.id = cp.user_id
+      WHERE u.role IN ('candidat', 'candidate')
+      ORDER BY u.created_at DESC
+    `;
+    const result = await pool.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erreur récupération des candidats:', err);
+    res.status(500).json({ message: 'Erreur serveur lors de la récupération des candidats.' });
+  }
+});
+
+// 2. Bloquer / Débloquer un candidat par la RH
+app.put('/api/admin/candidates/:id/block', verifyToken, async (req, res) => {
+  const candidateId = req.params.id;
+  const { is_blocked, reason } = req.body;
+  try {
+    const targetStatus = is_blocked ? 'bloqué' : 'actif';
+    const targetBlocked = Boolean(is_blocked);
+
+    const updateRes = await pool.query(
+      `UPDATE users 
+       SET status = $1, is_blocked = $2 
+       WHERE id = $3 AND role IN ('candidat', 'candidate')
+       RETURNING id, nom, prenom, email, status, is_blocked`,
+      [targetStatus, targetBlocked, candidateId]
+    );
+
+    if (updateRes.rows.length === 0) {
+      return res.status(404).json({ message: 'Candidat introuvable.' });
+    }
+
+    const candidate = updateRes.rows[0];
+
+    // Notification in-app pour le candidat
+    try {
+      const notifTitle = targetBlocked ? ' Compte suspendu par la RH' : ' Compte réactivé par la RH';
+      const notifMsg = targetBlocked
+        ? `Votre compte a été suspendu par la RH. Motif: ${reason || 'Non spécifié'}. Contactez le support.`
+        : `Votre compte candidat a été réactivé avec succès. Vous pouvez à nouveau accéder aux services et candidatures.`;
+      await pool.query(
+        `INSERT INTO notifications (user_id, title, message, type) VALUES ($1, $2, $3, 'system')`,
+        [candidateId, notifTitle, notifMsg]
+      );
+    } catch (e) {}
+
+    // Audit log
+    try {
+      const actionText = targetBlocked ? 'CANDIDATE_BLOCKED' : 'CANDIDATE_UNBLOCKED';
+      await pool.query(
+        `INSERT INTO audit_logs (user_id, action, details) VALUES ($1, $2, $3)`,
+        [req.user.id || candidateId, actionText, `Candidat #${candidateId} (${candidate.email}) status: ${targetStatus}. Motif: ${reason || 'N/A'}`]
+      );
+    } catch (e) {}
+
+    res.json({
+      message: targetBlocked ? 'Candidat bloqué avec succès.' : 'Candidat réactivé avec succès.',
+      candidate
+    });
+  } catch (err) {
+    console.error('Erreur blocage candidat:', err);
+    res.status(500).json({ message: 'Erreur lors de la modification du statut du candidat.' });
+  }
+});
+
+// 3. Fiche complète de l'activité d'un candidat
+app.get('/api/admin/candidates/:id/activity', verifyToken, async (req, res) => {
+  const candidateId = req.params.id;
+  try {
+    const userQ = await pool.query(
+      `SELECT u.id, u.nom, u.prenom, u.email, u.phone, u.genre, u.ville, u.region, u.status, u.is_blocked, u.created_at, u.avatar_url,
+              cp.title, cp.bio, cp.skills, cp.experience_years, cp.education_level, cp.cv_url, cp.completion_percentage
+       FROM users u
+       LEFT JOIN candidate_profiles cp ON u.id = cp.user_id
+       WHERE u.id = $1`,
+      [candidateId]
+    );
+
+    if (userQ.rows.length === 0) {
+      return res.status(404).json({ message: 'Candidat non trouvé.' });
+    }
+
+    const candidate = userQ.rows[0];
+
+    const appsQ = await pool.query(
+      `SELECT a.id, a.job_id, a.status, a.compatibility_score, a.created_at,
+              j.title AS job_title, j.department, j.type AS job_type
+       FROM applications a
+       LEFT JOIN jobs j ON a.job_id = j.id
+       WHERE a.user_id = $1
+       ORDER BY a.created_at DESC`,
+      [candidateId]
+    );
+
+    const interviewsQ = await pool.query(
+      `SELECT i.* FROM interviews i WHERE i.candidate_id = $1 OR i.user_id = $1 ORDER BY i.scheduled_at DESC`,
+      [candidateId]
+    );
+
+    res.json({
+      candidate,
+      applications: appsQ.rows,
+      interviews: interviewsQ.rows
+    });
+  } catch (err) {
+    console.error('Erreur fiche activité:', err);
+    res.status(500).json({ message: 'Erreur récupération fiche activité.' });
+  }
+});
+
+// ==========================================
+// GESTION DES GUIDES & RÈGLEMENTS (ADMIN RH & CANDIDATS)
+// ==========================================
+
+// 1. Obtenir la liste complète des guides officiels (Candidat & Admin)
+app.get('/api/guides', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT * FROM official_guides WHERE is_active = true ORDER BY id ASC`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erreur chargement des guides:', err);
+    res.status(500).json({ message: 'Erreur lors du chargement des guides et règlements.' });
+  }
+});
+
+// 2. Publier un nouveau guide ou règlement (Admin RH)
+app.post('/api/admin/guides', verifyToken, upload.single('file'), async (req, res) => {
+  try {
+    const { title, category, description, target_audience, badge_tag, badge_color, file_url_link } = req.body;
+    if (!title) {
+      return res.status(400).json({ message: 'Le titre du guide ou règlement est obligatoire.' });
+    }
+
+    let fileUrl = file_url_link || 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
+    let fileName = 'Document_Officiel.pdf';
+    let fileSize = 'PDF';
+
+    if (req.file) {
+      fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+      fileName = req.file.originalname || req.file.filename;
+      fileSize = `${(req.file.size / (1024 * 1024)).toFixed(1)} MB (PDF)`;
+    }
+
+    const newGuide = await pool.query(
+      `INSERT INTO official_guides (title, category, description, file_name, file_url, file_size, target_audience, badge_tag, badge_color, uploaded_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       RETURNING *`,
+      [
+        title,
+        category || 'Guide Général',
+        description || '',
+        fileName,
+        fileUrl,
+        fileSize,
+        target_audience || 'Tous les candidats',
+        badge_tag || 'Document Officiel',
+        badge_color || '#00a859',
+        req.user?.id || null
+      ]
+    );
+
+    // Enregistrer dans les logs d'audit
+    try {
+      await pool.query(
+        `INSERT INTO audit_logs (user_id, action, details) VALUES ($1, $2, $3)`,
+        [req.user.id, 'GUIDE_CREATED', `Création du guide/règlement #${newGuide.rows[0].id}: ${title}`]
+      );
+    } catch (e) {}
+
+    res.status(201).json({
+      message: 'Guide ou règlement officiel publié avec succès !',
+      guide: newGuide.rows[0]
+    });
+  } catch (err) {
+    console.error('Erreur création guide:', err);
+    res.status(500).json({ message: 'Erreur lors de la publication du guide.' });
+  }
+});
+
+// 3. Modifier un guide ou règlement existant (Admin RH)
+app.put('/api/admin/guides/:id', verifyToken, upload.single('file'), async (req, res) => {
+  const guideId = req.params.id;
+  try {
+    const { title, category, description, target_audience, badge_tag, badge_color, file_url_link } = req.body;
+
+    const existingRes = await pool.query('SELECT * FROM official_guides WHERE id = $1', [guideId]);
+    if (existingRes.rows.length === 0) {
+      return res.status(404).json({ message: 'Guide ou règlement introuvable.' });
+    }
+
+    const existing = existingRes.rows[0];
+    let fileUrl = file_url_link || existing.file_url;
+    let fileName = existing.file_name;
+    let fileSize = existing.file_size;
+
+    if (req.file) {
+      fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+      fileName = req.file.originalname || req.file.filename;
+      fileSize = `${(req.file.size / (1024 * 1024)).toFixed(1)} MB (PDF)`;
+    }
+
+    const updateRes = await pool.query(
+      `UPDATE official_guides
+       SET title = $1, category = $2, description = $3, file_name = $4, file_url = $5,
+           file_size = $6, target_audience = $7, badge_tag = $8, badge_color = $9, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $10
+       RETURNING *`,
+      [
+        title || existing.title,
+        category || existing.category,
+        description !== undefined ? description : existing.description,
+        fileName,
+        fileUrl,
+        fileSize,
+        target_audience || existing.target_audience,
+        badge_tag || existing.badge_tag,
+        badge_color || existing.badge_color,
+        guideId
+      ]
+    );
+
+    // Audit log
+    try {
+      await pool.query(
+        `INSERT INTO audit_logs (user_id, action, details) VALUES ($1, $2, $3)`,
+        [req.user.id, 'GUIDE_UPDATED', `Mise à jour du guide/règlement #${guideId}: ${updateRes.rows[0].title}`]
+      );
+    } catch (e) {}
+
+    res.json({
+      message: 'Guide ou règlement mis à jour avec succès !',
+      guide: updateRes.rows[0]
+    });
+  } catch (err) {
+    console.error('Erreur modification guide:', err);
+    res.status(500).json({ message: 'Erreur lors de la modification du guide.' });
+  }
+});
+
+// 4. Supprimer un guide ou règlement (Admin RH)
+app.delete('/api/admin/guides/:id', verifyToken, async (req, res) => {
+  const guideId = req.params.id;
+  try {
+    const deleteRes = await pool.query('DELETE FROM official_guides WHERE id = $1 RETURNING *', [guideId]);
+    if (deleteRes.rows.length === 0) {
+      return res.status(404).json({ message: 'Guide introuvable.' });
+    }
+
+    // Audit log
+    try {
+      await pool.query(
+        `INSERT INTO audit_logs (user_id, action, details) VALUES ($1, $2, $3)`,
+        [req.user.id, 'GUIDE_DELETED', `Suppression du guide/règlement #${guideId}: ${deleteRes.rows[0].title}`]
+      );
+    } catch (e) {}
+
+    res.json({ message: 'Guide ou règlement supprimé avec succès !', deletedId: guideId });
+  } catch (err) {
+    console.error('Erreur suppression guide:', err);
+    res.status(500).json({ message: 'Erreur lors de la suppression du guide.' });
+  }
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {

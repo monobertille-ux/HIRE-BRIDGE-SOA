@@ -30,6 +30,7 @@ async function initDB() {
       ALTER TABLE users ADD COLUMN IF NOT EXISTS ville VARCHAR(100) DEFAULT 'Soa';
       ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(50);
       ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'actif';
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS is_blocked BOOLEAN DEFAULT false;
     `);
     console.log(' Table users configurée.');
 
@@ -208,6 +209,41 @@ async function initDB() {
       );
     `);
     console.log(' Table messages configurée.');
+
+    // 12. Table official_guides (Guides & Règlements Officiels Gérés par la RH)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS official_guides (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        category VARCHAR(100) DEFAULT 'Guide Général',
+        description TEXT,
+        file_name VARCHAR(255),
+        file_url TEXT NOT NULL,
+        file_size VARCHAR(50) DEFAULT 'PDF',
+        target_audience VARCHAR(100) DEFAULT 'Tous les candidats',
+        badge_tag VARCHAR(100) DEFAULT 'Document Officiel',
+        badge_color VARCHAR(30) DEFAULT '#00a859',
+        is_active BOOLEAN DEFAULT true,
+        uploaded_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log(' Table official_guides configurée.');
+
+    // Seed guides par défaut si la table est vide
+    const guidesCount = await pool.query('SELECT COUNT(*) FROM official_guides');
+    if (parseInt(guidesCount.rows[0].count, 10) === 0) {
+      await pool.query(`
+        INSERT INTO official_guides (title, category, description, file_name, file_url, file_size, target_audience, badge_tag, badge_color) VALUES
+        ('Guide Officiel du Candidat & Concours Municipaux', 'Guide Général', 'Notice explicative complète sur le déroulement des concours, critères de sélection et étapes d inscription à la Mairie de Soa.', 'Guide_Officiel_Candidat_Soa.pdf', 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', '2.4 MB (PDF)', 'Tous les candidats', 'Conforme Loi Décentralisation', '#00a859'),
+        ('Règlement Intérieur du Personnel Communal & Stagiaires', 'Réglementation', 'Textes officiels régissant les droits, obligations, horaires et déontologie au sein des services de l Hôtel de Ville de Soa.', 'Reglement_Interieur_Soa_2026.pdf', 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', '1.8 MB (PDF)', 'Personnel & Stagiaires', 'Réglementation Officielle', '#ef4444'),
+        ('Modèle Normalisé de Demande Manuscrite Timbrée', 'Modèles & Formulaires', 'Exemple type de lettre de motivation et demande adressée à Monsieur le Maire de la Commune de Soa.', 'Modele_Demande_Manuscrite_Officielle.pdf', 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', '650 KB (PDF)', 'Candidats Emploi & Stage', 'Modèle Recommandé', '#0284c7'),
+        ('Guide des Métiers Municipaux & Offres de Stage 2026', 'Orientation & Métiers', 'Présentation détaillée des pôles administratifs, techniques et sociaux ouverts aux stages académiques et professionnels.', 'Guide_Metiers_Stages_Soa.pdf', 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', '3.1 MB (PDF)', 'Étudiants & Diplômés', 'Document Pédagogique', '#d97706'),
+        ('Checklist des Pièces Justificatives pour Dossier Valide', 'Procédure & Dossier', 'Liste de contrôle officielle des diplômes, actes et attestations à joindre sous peine de rejet automatique.', 'Checklist_Pieces_Dossier_Conforme.pdf', 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', '920 KB (PDF)', 'Tous les postulants', 'Contrôle de Conformité', '#16a34a');
+      `);
+      console.log(' Guides & Règlements officiels initiaux insérés.');
+    }
 
     // --- SEEDING DE DONNÉES PAR DÉFAUT ---
 
