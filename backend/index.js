@@ -12,7 +12,7 @@ require('dotenv').config();
 
 const app = express();
 
-app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
 // Dossier uploads
@@ -52,9 +52,9 @@ const allDocFields = [
   { name: 'copie_diplome', maxCount: 1 },
 ];
 
-const DOCS_EMPLOI            = ['cv', 'demande_manuscrite', 'lettre_motivation', 'copie_cni'];
-const DOCS_STAGE_ACADEMIQUE  = ['cv', 'demande_manuscrite', 'certificat_scolarite', 'attestation_ecole', 'copie_cni'];
-const DOCS_STAGE_PRO         = ['cv', 'demande_manuscrite', 'lettre_motivation', 'copie_diplome', 'copie_cni'];
+const DOCS_EMPLOI = ['cv', 'demande_manuscrite', 'lettre_motivation', 'copie_cni'];
+const DOCS_STAGE_ACADEMIQUE = ['cv', 'demande_manuscrite', 'certificat_scolarite', 'attestation_ecole', 'copie_cni'];
+const DOCS_STAGE_PRO = ['cv', 'demande_manuscrite', 'lettre_motivation', 'copie_diplome', 'copie_cni'];
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -204,9 +204,11 @@ app.post('/api/forgot-password', async (req, res) => {
     await pool.query('UPDATE users SET reset_code=$1, reset_code_expires=$2 WHERE LOWER(email)=$3',
       [resetCode, new Date(Date.now() + 15 * 60000), cleanEmail]);
     try {
-      await transporter.sendMail({ from: `"HireBridge-Mairie de Soa" <${process.env.EMAIL_USER || 'no-reply@soa.cm'}>`, to: cleanEmail,
+      await transporter.sendMail({
+        from: `"HireBridge-Mairie de Soa" <${process.env.EMAIL_USER || 'no-reply@soa.cm'}>`, to: cleanEmail,
         subject: 'Code de réinitialisation - Mairie de Soa',
-        html: `<h2>Code: <b style="color:#22c55e;letter-spacing:5px">${resetCode}</b></h2><p>Expire dans 15 min.</p>` });
+        html: `<h2>Code: <b style="color:#22c55e;letter-spacing:5px">${resetCode}</b></h2><p>Expire dans 15 min.</p>`
+      });
     } catch (e) { /* email non configuré */ }
     res.json({ message: `Code généré ! (Dev: ${resetCode})` });
   } catch (err) { res.status(500).json({ message: 'Erreur.' }); }
@@ -903,7 +905,7 @@ app.post('/api/jobs', async (req, res) => {
       `INSERT INTO jobs(title,department,location,type,skills_required,description,salary_range,deadline,missions,requirements)
        VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
       [title, department, location || 'Mairie de Soa • Yaoundé, Cameroun', type || 'CDI',
-       skills_required || [], description, salary_range || 'Selon grille', deadline || null, missions || null, requirements || null]
+        skills_required || [], description, salary_range || 'Selon grille', deadline || null, missions || null, requirements || null]
     );
     res.status(201).json({ message: 'Offre publiée !', job: r.rows[0] });
   } catch (err) { console.error(err); res.status(500).json({ message: 'Erreur création offre.' }); }
@@ -1350,7 +1352,7 @@ const handleRejectApplication = async (req, res) => {
       ALTER TABLE applications ADD COLUMN IF NOT EXISTS rejection_category VARCHAR(255);
       ALTER TABLE applications ADD COLUMN IF NOT EXISTS allow_resubmission BOOLEAN DEFAULT false;
       ALTER TABLE applications ADD COLUMN IF NOT EXISTS rejected_at TIMESTAMP;
-    `).catch(() => {});
+    `).catch(() => { });
 
     // Trouver l'ID RH expéditeur
     let adminRhId = rhId ? parseInt(rhId, 10) : null;
@@ -1455,7 +1457,7 @@ const handleRejectApplication = async (req, res) => {
         `MOTIF ET EXPLICATIONS DU REJET :\n` +
         `• Catégorie : ${categoryLabel}\n` +
         `• Explications : ${detailsText}\n\n` +
-        (isResubmissionAllowed 
+        (isResubmissionAllowed
           ? `Remarque : Vous êtes autorisé(e) à mettre à jour vos pièces justificatives et à régulariser votre dossier depuis votre espace candidat.\n\n`
           : `Nous vous remercions pour votre intérêt envers la Commune de Soa et vous souhaitons bon succès dans vos démarches.\n\n`) +
         `Cordialement,\nLe Service des Ressources Humaines • Mairie de la Commune de Soa`;
@@ -1522,7 +1524,7 @@ app.post('/api/applications/apply', dossierUpload.fields(applyDocFields), async 
     }
     const ex = await pool.query('SELECT id FROM applications WHERE user_id=$1 AND job_id=$2', [userId, jobId]);
     if (ex.rows.length > 0) return res.status(400).json({ message: 'Vous avez déjà postulé à cette offre.' });
-    
+
     const r = await pool.query(
       `INSERT INTO applications(user_id,job_id,application_type,compatibility_score,status,cover_letter) VALUES($1,$2,'emploi',$3,'soumis',$4) RETURNING *`,
       [userId, jobId, compatibilityScore || 75, coverLetter || '']
@@ -1555,7 +1557,7 @@ app.post('/api/applications/apply', dossierUpload.fields(applyDocFields), async 
       const jobInfo = (await pool.query('SELECT title FROM jobs WHERE id=$1', [jobId])).rows[0];
       const candName = candInfo ? `${candInfo.prenom} ${candInfo.nom}` : 'Un candidat';
       const jobTitle = jobInfo ? jobInfo.title : 'une offre d\'emploi';
-      
+
       await notifyHrAdmins(
         ` Nouvelle Candidature Reçue !`,
         `${candName} vient de postuler pour l'offre « ${jobTitle} ». Dossier en attente d'examen.`,
@@ -2027,13 +2029,13 @@ app.post('/api/interviews/schedule', async (req, res) => {
 app.get('/api/interviews/candidate/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    
+
     // Auto-clôturer les entretiens programmés dont la date/heure est dépassée de plus de 3h
     await pool.query(`
       UPDATE interviews 
       SET status = 'termine', notes = COALESCE(notes, '') || ' [Clôturé automatiquement suite à expiration de la date]'
       WHERE status = 'programme' AND scheduled_at < NOW() - INTERVAL '3 hours';
-    `).catch(() => {});
+    `).catch(() => { });
 
     const r = await pool.query(`
       SELECT 
@@ -2064,7 +2066,7 @@ app.get('/api/interviews/admin', async (req, res) => {
       UPDATE interviews 
       SET status = 'termine', notes = COALESCE(notes, '') || ' [Clôturé automatiquement suite à expiration de la date]'
       WHERE status = 'programme' AND scheduled_at < NOW() - INTERVAL '3 hours';
-    `).catch(() => {});
+    `).catch(() => { });
 
     const r = await pool.query(`
       SELECT 
@@ -2870,7 +2872,7 @@ app.post('/api/candidate/trainings/apply', upload.fields([
     try {
       const trainingInfo = (await pool.query('SELECT title FROM trainings WHERE id=$1', [trainingId])).rows[0];
       const trTitle = trainingInfo ? trainingInfo.title : 'une formation';
-      
+
       await notifyHrAdmins(
         ` Nouvelle Inscription Formation Municipale !`,
         `${prenom || ''} ${nom || ''} a soumis une demande d'inscription pour la formation « ${trTitle} ».`,
@@ -3065,7 +3067,7 @@ app.put('/api/admin/training-applications/:id/status', async (req, res) => {
           console.error('Erreur notification in-app formation:', notifErr.message);
         }
 
-      // CAS 2 : DOSSIER REFUSÉ / NON RETENU
+        // CAS 2 : DOSSIER REFUSÉ / NON RETENU
       } else if (status === 'REFUSEE' || status === 'REJETEE') {
         try {
           await transporter.sendMail({
@@ -3151,7 +3153,7 @@ app.post('/api/chatbot/query', async (req, res) => {
         if (uRes.rows.length > 0 && uRes.rows[0].prenom) {
           userFirstName = uRes.rows[0].prenom.trim();
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     const nameLabel = userFirstName || '';
@@ -3168,8 +3170,8 @@ app.post('/api/chatbot/query', async (req, res) => {
     const normalized = lower.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
     // Détection d'une salutation explicite (bonjour, salut, hello, etc.)
-    const isExplicitGreeting = 
-      normalized === 'bonjour' || normalized === 'salut' || normalized === 'hello' || 
+    const isExplicitGreeting =
+      normalized === 'bonjour' || normalized === 'salut' || normalized === 'hello' ||
       normalized === 'hi' || normalized === 'coucou' || normalized === 'bonsoir' ||
       normalized.includes('ca va') || normalized.includes('comment vas') ||
       normalized.includes('qui es tu') || normalized.includes('presentation') || normalized.includes('presente toi');
@@ -3181,26 +3183,26 @@ app.post('/api/chatbot/query', async (req, res) => {
     // 1. FILTRE DE CONFIDENTIALITÉ STRICT (Clair & Courtois)
     // =========================================================================
 
-    const isSalaryConfidential = 
+    const isSalaryConfidential =
       (normalized.includes('salaire') || normalized.includes('remuneration') || normalized.includes('paie') || normalized.includes('gagne') || normalized.includes('revenu') || normalized.includes('prime')) &&
       (normalized.includes('maire') || normalized.includes('agent') || normalized.includes('rh') || normalized.includes('adjoint') || normalized.includes('directeur') || normalized.includes('personnel') || normalized.includes('estelle') || normalized.includes('mireille') || normalized.includes('employe') || normalized.includes('fonctionnaire'));
 
-    const isSecurityConfidential = 
-      normalized.includes('mot de passe') || normalized.includes('password') || normalized.includes('mdp') || 
+    const isSecurityConfidential =
+      normalized.includes('mot de passe') || normalized.includes('password') || normalized.includes('mdp') ||
       normalized.includes('code secret') || normalized.includes('base de donnees') || normalized.includes('database') ||
-      normalized.includes('cle api') || normalized.includes('token secret') || normalized.includes('identifiant admin') || 
+      normalized.includes('cle api') || normalized.includes('token secret') || normalized.includes('identifiant admin') ||
       normalized.includes('acces serveur') || normalized.includes('hack') || normalized.includes('faille');
 
-    const isPrivacyConfidential = 
-      (normalized.includes('autre candidat') || normalized.includes('autres candidat') || 
-       normalized.includes('liste des candidat') || normalized.includes('liste des postulant') ||
-       (normalized.includes('cni') && (normalized.includes('autre') || normalized.includes('candidat') || normalized.includes('gens') || normalized.includes('citoyen'))) ||
-       ((normalized.includes('telephone') || normalized.includes('coordonnee') || normalized.includes('contact')) && (normalized.includes('autre') || normalized.includes('candidat') || normalized.includes('maire') || normalized.includes('personnel')))) &&
+    const isPrivacyConfidential =
+      (normalized.includes('autre candidat') || normalized.includes('autres candidat') ||
+        normalized.includes('liste des candidat') || normalized.includes('liste des postulant') ||
+        (normalized.includes('cni') && (normalized.includes('autre') || normalized.includes('candidat') || normalized.includes('gens') || normalized.includes('citoyen'))) ||
+        ((normalized.includes('telephone') || normalized.includes('coordonnee') || normalized.includes('contact')) && (normalized.includes('autre') || normalized.includes('candidat') || normalized.includes('maire') || normalized.includes('personnel')))) &&
       !normalized.includes('mon dossier') && !normalized.includes('ma candidature') && !normalized.includes('mon profil') && !normalized.includes('mes candidature') && !normalized.includes('mes document');
 
-    const isMunicipalClassified = 
+    const isMunicipalClassified =
       normalized.includes('huis clos') || normalized.includes('secret de la mairie') ||
-      normalized.includes('deliberation secrete') || normalized.includes('marche secret') || 
+      normalized.includes('deliberation secrete') || normalized.includes('marche secret') ||
       normalized.includes('document classifie') || normalized.includes('budget secret') ||
       normalized.includes('pots de vin') || normalized.includes('corruption');
 
@@ -3222,8 +3224,8 @@ app.post('/api/chatbot/query', async (req, res) => {
     // 2. RÉPONSE AUX SALUTATIONS EXPLICITES
     // =========================================================================
     else if (isExplicitGreeting) {
-      reply = nameLabel 
-        ? `Bonjour ${nameLabel} ! C'est un plaisir d'échanger avec toi. Que puis-je faire pour toi aujourd'hui ? ` 
+      reply = nameLabel
+        ? `Bonjour ${nameLabel} ! C'est un plaisir d'échanger avec toi. Que puis-je faire pour toi aujourd'hui ? `
         : `Bonjour ! C'est un plaisir d'échanger avec toi. Que puis-je faire pour toi aujourd'hui ? `;
       options = ["Pièces à fournir", "Consulter les offres", "Demande de stage", "Horaires Mairie"];
     }
@@ -3256,7 +3258,7 @@ app.post('/api/chatbot/query', async (req, res) => {
       try {
         const jRes = await pool.query("SELECT COUNT(*) as count FROM jobs WHERE status = 'actif'");
         activeJobsCount = parseInt(jRes.rows[0].count, 10);
-      } catch (e) {}
+      } catch (e) { }
 
       reply = `Il y a actuellement ${activeJobsCount > 0 ? activeJobsCount + ' offre(s) d\'emploi active(s)' : 'des opportunités régulières'} publiées par le Service des Ressources Humaines de la Mairie de Soa.\n\nSur HireBridge Soa :\n• Ton profil est analysé pour afficher automatiquement ton niveau d'adéquation avec le poste.\n• Tu postules en 1 clic avec tes pièces numériques.\n• Tu reçois immédiatement ta décharge officielle avec cachet électronique dès la soumission.`;
       options = ["Consulter les offres", "Déposer un dossier", "Mon Profil"];
@@ -3274,7 +3276,7 @@ app.post('/api/chatbot/query', async (req, res) => {
       try {
         const tRes = await pool.query("SELECT COUNT(*) as count FROM trainings WHERE is_active = true");
         trCount = parseInt(tRes.rows[0].count, 10);
-      } catch (e) {}
+      } catch (e) { }
 
       reply = `La Commune de Soa offre des programmes de formations gratuites pour développer les compétences de sa jeunesse (${trCount > 0 ? trCount + ' session(s) disponible(s)' : 'programmes réguliers'}) !\n\nDomaines couverts :\n• Bureautique & Outils Numériques Administratifs\n• Salubrité Communale & Soa Ville Propre\n• Procédures d'État Civil & Accueil des Usagers\n• Fiscalité Locale & Recouvrement Municipal\n\nUne Attestation Officielle de Formation Municipale te sera délivrée à l'issue de chaque session validée.`;
       options = ["Voir les Formations", "Mes Inscriptions", "Messagerie RH"];
@@ -3305,7 +3307,7 @@ app.post('/api/chatbot/query', async (req, res) => {
             const cRes = await pool.query("SELECT COUNT(*) as count FROM applications WHERE user_id = $1", [userId]);
             appCount = parseInt(cRes.rows[0].count, 10);
           }
-        } catch (e) {}
+        } catch (e) { }
 
         if (lastApp) {
           const formattedDate = new Date(lastApp.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
@@ -3383,7 +3385,7 @@ app.post('/api/chatbot/query', async (req, res) => {
     res.json({ reply, options });
   } catch (err) {
     console.error('Erreur /api/chatbot/query:', err);
-    res.json({ 
+    res.json({
       reply: "Bonjour ! Excusez-moi, une petite baisse de réseau est survenue. Veuillez m'excuser et poser à nouveau votre question, je me ferai une joie de vous répondre !",
       options: ["Pièces à fournir", "Consulter les offres", "Demande de Stage", "Horaires Mairie"]
     });
@@ -3399,7 +3401,7 @@ app.get('/api/rh/status', async (req, res) => {
   try {
     const rhUser = await pool.query("SELECT id, nom, prenom, email FROM users WHERE role = 'admin_rh' OR role = 'super_admin' ORDER BY id ASC LIMIT 1");
     const rhSettings = await pool.query("SELECT * FROM rh_settings ORDER BY id ASC LIMIT 1");
-    
+
     const settings = rhSettings.rows[0] || {
       is_available: true,
       status_text: 'En ligne & Disponible',
@@ -4045,8 +4047,8 @@ app.post('/api/support/tickets', async (req, res) => {
       return res.status(400).json({ message: 'Veuillez renseigner tous les champs obligatoires du ticket.' });
     }
 
-    const finalSubject = subject && subject.trim() 
-      ? subject.trim() 
+    const finalSubject = subject && subject.trim()
+      ? subject.trim()
       : `${category || 'Demande'} - ${message.trim().substring(0, 40)}${message.trim().length > 40 ? '...' : ''}`;
 
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
@@ -4571,7 +4573,7 @@ app.put('/api/admin/candidates/:id/block', verifyToken, async (req, res) => {
         `INSERT INTO notifications (user_id, title, message, type) VALUES ($1, $2, $3, 'system')`,
         [candidateId, notifTitle, notifMsg]
       );
-    } catch (e) {}
+    } catch (e) { }
 
     // Audit log
     try {
@@ -4580,7 +4582,7 @@ app.put('/api/admin/candidates/:id/block', verifyToken, async (req, res) => {
         `INSERT INTO audit_logs (user_id, action, details) VALUES ($1, $2, $3)`,
         [req.user.id || candidateId, actionText, `Candidat #${candidateId} (${candidate.email}) status: ${targetStatus}. Motif: ${reason || 'N/A'}`]
       );
-    } catch (e) {}
+    } catch (e) { }
 
     res.json({
       message: targetBlocked ? 'Candidat bloqué avec succès.' : 'Candidat réactivé avec succès.',
@@ -4696,7 +4698,7 @@ app.post('/api/admin/guides', verifyToken, upload.single('file'), async (req, re
         `INSERT INTO audit_logs (user_id, action, details) VALUES ($1, $2, $3)`,
         [req.user.id, 'GUIDE_CREATED', `Création du guide/règlement #${newGuide.rows[0].id}: ${title}`]
       );
-    } catch (e) {}
+    } catch (e) { }
 
     res.status(201).json({
       message: 'Guide ou règlement officiel publié avec succès !',
@@ -4756,7 +4758,7 @@ app.put('/api/admin/guides/:id', verifyToken, upload.single('file'), async (req,
         `INSERT INTO audit_logs (user_id, action, details) VALUES ($1, $2, $3)`,
         [req.user.id, 'GUIDE_UPDATED', `Mise à jour du guide/règlement #${guideId}: ${updateRes.rows[0].title}`]
       );
-    } catch (e) {}
+    } catch (e) { }
 
     res.json({
       message: 'Guide ou règlement mis à jour avec succès !',
@@ -4783,7 +4785,7 @@ app.delete('/api/admin/guides/:id', verifyToken, async (req, res) => {
         `INSERT INTO audit_logs (user_id, action, details) VALUES ($1, $2, $3)`,
         [req.user.id, 'GUIDE_DELETED', `Suppression du guide/règlement #${guideId}: ${deleteRes.rows[0].title}`]
       );
-    } catch (e) {}
+    } catch (e) { }
 
     res.json({ message: 'Guide ou règlement supprimé avec succès !', deletedId: guideId });
   } catch (err) {
@@ -4848,11 +4850,11 @@ app.listen(PORT, '0.0.0.0', () => {
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `)
-  .then(() => {
-    console.log(' Migrations appliquées');
-    // Supprimer l'ancienne contrainte UNIQUE(user_id, job_id) sur applications
-    // qui bloque les dépôts de stage (job_id NULL)
-    return pool.query(`
+    .then(() => {
+      console.log(' Migrations appliquées');
+      // Supprimer l'ancienne contrainte UNIQUE(user_id, job_id) sur applications
+      // qui bloque les dépôts de stage (job_id NULL)
+      return pool.query(`
       DO $$
       BEGIN
         IF EXISTS (
@@ -4864,26 +4866,26 @@ app.listen(PORT, '0.0.0.0', () => {
         END IF;
       END $$;
     `);
-  })
-  .then(async () => {
-    // Seed permanent du compte Super Admin
-    const superEmail = 'estellemono5@gmail.com';
-    const superPass = 'Estelle#235';
-    const checkSuper = await pool.query('SELECT id, role FROM users WHERE email = $1', [superEmail]);
-    const hash = await bcrypt.hash(superPass, 10);
-    if (checkSuper.rows.length === 0) {
-      await pool.query(
-        "INSERT INTO users (nom, prenom, email, password_hash, role, region, ville, phone, status) VALUES ('Mono', 'Estelle', $1, $2, 'super_admin', 'Direction Générale • Super Administration', 'Soa', '+237 600 00 00 00', 'actif')",
-        [superEmail, hash]
-      );
-      console.log(' Compte Super Admin créé : ' + superEmail);
-    } else if (checkSuper.rows[0].role !== 'super_admin') {
-      await pool.query(
-        "UPDATE users SET role = 'super_admin', status = 'actif', password_hash = $1, nom = 'Mono', prenom = 'Estelle' WHERE email = $2",
-        [hash, superEmail]
-      );
-      console.log(' Compte promu Super Admin : ' + superEmail);
-    }
-  })
-  .catch(e => console.log('[Migration info]:', e.message));
+    })
+    .then(async () => {
+      // Seed permanent du compte Super Admin
+      const superEmail = 'estellemono5@gmail.com';
+      const superPass = 'Estelle#235';
+      const checkSuper = await pool.query('SELECT id, role FROM users WHERE email = $1', [superEmail]);
+      const hash = await bcrypt.hash(superPass, 10);
+      if (checkSuper.rows.length === 0) {
+        await pool.query(
+          "INSERT INTO users (nom, prenom, email, password_hash, role, region, ville, phone, status) VALUES ('Mono', 'Estelle', $1, $2, 'super_admin', 'Direction Générale • Super Administration', 'Soa', '+237 600 00 00 00', 'actif')",
+          [superEmail, hash]
+        );
+        console.log(' Compte Super Admin créé : ' + superEmail);
+      } else if (checkSuper.rows[0].role !== 'super_admin') {
+        await pool.query(
+          "UPDATE users SET role = 'super_admin', status = 'actif', password_hash = $1, nom = 'Mono', prenom = 'Estelle' WHERE email = $2",
+          [hash, superEmail]
+        );
+        console.log(' Compte promu Super Admin : ' + superEmail);
+      }
+    })
+    .catch(e => console.log('[Migration info]:', e.message));
 });
