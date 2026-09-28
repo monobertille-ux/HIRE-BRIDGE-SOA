@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { translateDynamic } from '../i18n';
 import { translateRawText } from '../utils/domTranslator';
+import { applyTranslation } from '../utils/googleTranslate';
 
 const LanguageContext = createContext();
 
@@ -12,17 +13,19 @@ export const LanguageProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('hb_lang', language);
     document.documentElement.lang = language;
+    applyTranslation(language);
   }, [language]);
-
-  const toggleLanguage = () => {
-    const nextLang = language === 'fr' ? 'en' : 'fr';
-    i18n.changeLanguage(nextLang);
-  };
 
   const changeLanguage = (newLang) => {
     if (newLang === 'fr' || newLang === 'en') {
       i18n.changeLanguage(newLang);
+      applyTranslation(newLang);
     }
+  };
+
+  const toggleLanguage = () => {
+    const nextLang = language === 'fr' ? 'en' : 'fr';
+    changeLanguage(nextLang);
   };
 
   // Helper principal de traduction réactif avec react-i18next + fallback SOA
