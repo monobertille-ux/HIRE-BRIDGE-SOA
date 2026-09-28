@@ -4,10 +4,192 @@
 // Traduit 100% des mots, phrases, cartes, tableaux, formulaires, modals et contenus dynamiques API
 // =========================================================================
 
+import { API_BASE_URL } from './apiConfig';
+
 const CLIENT_TRANSLATION_CACHE = new Map();
 
 // 1. Dictionnaire exhaustif de phrases complètes et expressions officielles
 const PHRASES = {
+  // --- MENU & SECTIONS DU DASHBOARD CANDIDAT ---
+  "Tableau de bord": "Dashboard",
+  "TABLEAU DE BORD": "DASHBOARD",
+  "Mon Profil & CV": "My Profile & CV",
+  "Mon Profil": "My Profile",
+  "Mes Candidatures": "My Applications",
+  "Dépôt de Candidature": "Submit Application",
+  "Documents & Pièces": "Documents & Attachments",
+  "Mes Entretiens": "My Interviews",
+  "Contrat & Signature": "Contract & Signature",
+  "Formations Mairie": "Municipal Trainings",
+  "Événements Municipaux": "Municipal Events",
+  "Guides & Règlements": "Guides & Regulations",
+  "Messagerie RH": "HR Messaging",
+  "Messagerie": "Messaging",
+  "Assistance & Réclamations": "Support & Claims",
+  "Assistance": "Support",
+  "Paramètres": "Settings",
+  "Déconnexion": "Logout",
+  "Portail Candidat": "Candidate Portal",
+  "PORTAIL OFFICIEL CANDIDAT": "OFFICIAL CANDIDATE PORTAL",
+  "Mairie de SOA": "Soa Council",
+  "Mairie de Soa": "Soa Council",
+  
+  // --- TABLEAU DE BORD CANDIDAT & STATS ---
+  "Votre profil": "Your profile",
+  "Profil complété à": "Profile completed at",
+  "Mettre à jour mon profil": "Update my profile",
+  "Votre compatibilité avec les opportunités actuelles": "Your compatibility with current opportunities",
+  "Très bon profil": "Very good profile",
+  "Bon profil": "Good profile",
+  "Profil à compléter": "Profile to complete",
+  "Opportunités recommandées": "Recommended opportunities",
+  "Voir toutes les offres": "View all job offers",
+  "Postuler maintenant": "Apply now",
+  "Postuler": "Apply",
+  "Détails de l'offre": "Job Details",
+  "Date limite :": "Deadline:",
+  "Date limite": "Deadline",
+  "Rémunération :": "Salary:",
+  "Rémunération": "Salary",
+  "Lieu :": "Location:",
+  "Compétences requises :": "Required skills:",
+  "Compétences requises": "Required skills",
+  "Type de contrat :": "Contract type:",
+  "Département :": "Department:",
+  
+  // --- ONGLET CANDIDATURES ---
+  "Suivi de mes candidatures": "My Applications Tracking",
+  "Historique et progression de vos dossiers auprès des services de la Mairie de Soa": "History and progress of your applications with Soa Council services",
+  "Toutes mes candidatures": "All my applications",
+  "Poste / Titre": "Job Title",
+  "Date de soumission": "Submission Date",
+  "Statut du dossier": "Application Status",
+  "Compatibilité": "Compatibility",
+  "Actions": "Actions",
+  "Voir le dossier": "View Application",
+  "Aucune candidature enregistrée pour le moment": "No applications submitted yet",
+  "Vous n'avez pas encore postulé à une offre.": "You have not applied to any job offer yet.",
+  "Consulter les offres disponibles": "Browse available job offers",
+  "Soumis": "Submitted",
+  "En cours d'examen": "Under review",
+  "Dossier recevable": "Eligible application",
+  "Entretien programmé": "Interview scheduled",
+  "Candidature retenue": "Application accepted",
+  "Candidature non retenue": "Application rejected",
+  "Contrat généré": "Contract generated",
+  "Contrat signé": "Contract signed",
+  "Motif du refus": "Reason for rejection",
+  "Possibilité de resoumettre un dossier :": "Possibility of resubmitting a file:",
+  "Oui, pièces complémentaires attendues": "Yes, additional documents required",
+  "Non, décision définitive": "No, final decision",
+  
+  // --- ONGLET PROFIL & CV ---
+  "Gestion du Profil & Dossier Candidat": "Profile & Application Management",
+  "Informations Personnelles": "Personal Information",
+  "Nom & Prénoms": "Full Name",
+  "Adresse Email": "Email Address",
+  "Numéro de téléphone": "Phone Number",
+  "Ville de résidence": "City of Residence",
+  "Région d'origine / résidence": "Region of Origin / Residence",
+  "Genre / Civilité": "Gender / Title",
+  "Titre professionnel / Métier": "Professional Title / Occupation",
+  "Biographie / Présentation synthétique": "Bio / Professional Summary",
+  "Niveau d'études le plus élevé": "Highest Education Level",
+  "Années d'expérience professionnelle": "Years of Professional Experience",
+  "Compétences & Mots-clés": "Skills & Keywords",
+  "Ajouter une compétence": "Add a skill",
+  "Enregistrer les modifications": "Save changes",
+  "Modifications enregistrées avec succès": "Changes saved successfully",
+  "Diplômes & Certifications enregistrés": "Registered Degrees & Certifications",
+  "Ajouter un diplôme ou certificat": "Add a degree or certificate",
+  "Intitulé du diplôme": "Degree title",
+  "Établissement / Université": "Institution / University",
+  "Année d'obtention": "Year of graduation",
+  "Fichier justificatif (PDF ou image)": "Supporting document (PDF or image)",
+  "Téléverser le justificatif": "Upload document",
+  "Télécharger mon CV actuel": "Download my current CV",
+  "Remplacer mon CV": "Replace my CV",
+  "Format accepté : PDF (max 5 Mo)": "Accepted format: PDF (max 5 MB)",
+  
+  // --- ONGLET DOCUMENTS & PIÈCES ---
+  "Mes Documents & Pièces Officielles": "My Official Documents & Records",
+  "Centralisez vos pièces justificatives conformes pour accélérer vos candidatures municipales": "Centralize your compliant supporting documents to speed up your municipal applications",
+  "Carte Nationale d'Identité (CNI)": "National Identity Card (CNI)",
+  "Curriculum Vitae (CV) actualisé": "Updated Curriculum Vitae (CV)",
+  "Diplôme le plus élevé légalisé": "Highest Legalized Degree",
+  "Certificat médical de non-contagion": "Medical Certificate",
+  "Extrait de casier judiciaire (Bulletin n°3)": "Criminal Record Certificate (Bulletin No. 3)",
+  "Lettre de motivation timbrée": "Stamped Motivation Letter",
+  "Attestation de stage ou travail": "Internship or Work Certificate",
+  "Téléverser une nouvelle pièce": "Upload a new document",
+  "Fichier transmis le :": "File uploaded on:",
+  "Consulter le document": "View document",
+  "Supprimer": "Delete",
+  
+  // --- ONGLET ENTRETIENS ---
+  "Entretiens de Recrutement": "Recruitment Interviews",
+  "Planning de vos auditions et visioconférences avec le jury et la commission municipale": "Schedule of your auditions and video interviews with the jury and municipal board",
+  "Entretiens à venir": "Upcoming Interviews",
+  "Historique des entretiens passés": "Past Interviews History",
+  "Date & Heure de l'entretien": "Interview Date & Time",
+  "Poste concerné": "Target Position",
+  "Responsable / Recruteur RH": "HR Officer / Interviewer",
+  "Rejoindre la salle visio": "Join Video Room",
+  "Accéder à la visioconférence": "Access Video Call",
+  "En attente de démarrage de l'entretien": "Waiting for interview to start",
+  "Entretien terminé": "Interview completed",
+  
+  // --- ONGLET CONTRAT & SIGNATURE ---
+  "Contrat de Recrutement & Signature Électronique": "Employment Contract & Electronic Signature",
+  "Vérification des clauses officielles de votre contrat communal et apposition de votre signature": "Review of your municipal contract terms and submission of your electronic signature",
+  "Votre contrat est prêt pour signature": "Your contract is ready for signature",
+  "Veuillez lire attentivement l'intégralité du contrat avant d'apposer votre signature électronique ci-dessous.": "Please read the entire contract carefully before applying your electronic signature below.",
+  "Zone de signature manuscrite": "Signature Area",
+  "Signez ici avec votre souris ou votre doigt": "Sign here using your mouse or finger",
+  "Effacer la signature": "Clear signature",
+  "Valider et signer le contrat officiel": "Validate and sign official contract",
+  "Contrat signé avec succès !": "Contract signed successfully!",
+  "Télécharger l'exemplaire signé (PDF)": "Download signed copy (PDF)",
+  
+  // --- FORMATIONS & ÉVÉNEMENTS ---
+  "Formations de Perfectionnement Municipal": "Municipal Training Programs",
+  "Développez vos compétences grâce aux ateliers et sessions certifiantes de la Mairie de Soa": "Develop your skills through certifying workshops and sessions at Soa Council",
+  "Formations Ouvertes": "Open Training Sessions",
+  "Mes Inscriptions aux Formations": "My Training Enrollments",
+  "Formateur / Intervenant :": "Trainer / Speaker:",
+  "Date de début :": "Start date:",
+  "Capacité :": "Capacity:",
+  "places restantes": "seats left",
+  "S'inscrire à cette formation": "Enroll in this training",
+  "Déjà inscrit(e)": "Already enrolled",
+  "Calendrier des Événements Municipaux": "Municipal Events Calendar",
+  "Participez aux forums de l'emploi, concours et rassemblements de la jeunesse de Soa": "Join youth forums, job fairs and civic gatherings in Soa",
+  "S'inscrire à cet événement": "Register for this event",
+  
+  // --- GUIDES OFFICIELS ---
+  "Guides & Règlements Communaux": "Official Guides & Regulations",
+  "Consultez et téléchargez les notices explicatives, modèles de demande manuscrite et textes officiels": "Consult and download explanatory guidelines, letter templates and municipal texts",
+  "Télécharger la notice (PDF)": "Download guideline (PDF)",
+  "Document conforme et à jour": "Compliant and updated document",
+  
+  // --- MESSAGERIE RH ---
+  "Messagerie & Échanges avec le Service RH": "HR Messaging & Inquiries",
+  "Posez vos questions directement aux gestionnaires de recrutement de la Mairie de Soa": "Ask your questions directly to Soa Council recruitment officers",
+  "Historique des messages": "Message history",
+  "Écrire un message au service RH...": "Type a message to the HR department...",
+  "Envoyer le message": "Send message",
+  "Message envoyé": "Message sent",
+  
+  // --- ASSISTANCE & NOTIFICATIONS ---
+  "Assistance Citoyenne & Réclamations": "Citizen Assistance & Complaints",
+  "Soumettre une requête ou signaler une difficulté relative à votre candidature": "Submit a query or report an issue regarding your application",
+  "Objet de la réclamation": "Subject of the complaint",
+  "Description détaillée": "Detailed description",
+  "Envoyer la requête": "Submit query",
+  "Notifications récentes": "Recent notifications",
+  "Aucune notification récente": "No recent notifications",
+  "Tout marquer comme lu": "Mark all as read",
+  
   "Affichage & Accessibilité": "Display & Accessibility",
   "Thème d'affichage :": "Display Theme:",
   "Activer Mode Sombre": "Enable Dark Mode",
@@ -1557,6 +1739,14 @@ const PHRASES = {
   "Consulter / Télécharger": "View / Download"
 };
 
+// Dictionnaire inversé pour la restauration 100% propre du Français
+const REVERSE_PHRASES = {};
+for (const [frKey, enVal] of Object.entries(PHRASES)) {
+  if (enVal && typeof enVal === 'string') {
+    REVERSE_PHRASES[enVal.trim().toLowerCase()] = frKey.trim();
+  }
+}
+
 // 2. Lexique de vocabulaire individuel pour traduction mot-à-mot intelligente
 const VOCABULARY = {
   // Mairie & Administration
@@ -1787,8 +1977,7 @@ async function fetchOnlineTranslation(text) {
   }
 
   try {
-    const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-    const res = await fetch(`http://${hostname}:5000/api/translate`, {
+    const res = await fetch(`${API_BASE_URL}/api/translate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text: clean, from: 'fr', to: 'en' })
@@ -1882,6 +2071,16 @@ export function applyDOMTranslation(targetLang) {
       return;
     }
 
+    // La sidebar et la barre de langue sont déjà 100% gérées nativement par React i18n
+    if (node.classList && (
+      node.classList.contains('sidebar') ||
+      node.classList.contains('sidebar-nav') ||
+      node.classList.contains('topbar-language-wrapper') ||
+      node.classList.contains('notranslate')
+    )) {
+      return;
+    }
+
     // Traduction des attributs (placeholder, title, alt, option value/text)
     if (node.nodeType === Node.ELEMENT_NODE) {
       if (node.placeholder) {
@@ -1917,7 +2116,13 @@ export function applyDOMTranslation(targetLang) {
           // Restauration du Français
           if (node._hb_fr_text && node.nodeValue !== node._hb_fr_text) {
             node.nodeValue = node._hb_fr_text;
+          } else {
+            const clean = currentText.trim().toLowerCase();
+            if (REVERSE_PHRASES[clean]) {
+              node.nodeValue = currentText.replace(currentText.trim(), REVERSE_PHRASES[clean]);
+            }
           }
+          node._hb_en_text = null;
         }
       }
       return;
@@ -1935,17 +2140,91 @@ export function applyDOMTranslation(targetLang) {
   processNode(root);
 }
 
-let translationInterval = null;
+let domObserver = null;
+let domDebounceTimer = null;
+let domPollInterval = null;
 
 /**
  * Démarre l'observateur et l'intervalle de traduction pour maintenir la traduction en direct à 100%
  */
-export function startDOMAutoTranslator(targetLang) {
-  // DOM auto-translation disabled in favor of React native state translation
-  return;
+export function startDOMAutoTranslator(targetLang = 'en') {
+  if (typeof document === 'undefined') return;
+
+  if (targetLang !== 'en') {
+    stopDOMAutoTranslator();
+    applyDOMTranslation('fr');
+    return;
+  }
+
+  // Immédiatement traduire tout le DOM existant
+  applyDOMTranslation('en');
+
+  // Arrêter l'ancien observateur s'il existe
+  if (domObserver) {
+    domObserver.disconnect();
+    domObserver = null;
+  }
+
+  // Observer les changements dynamiques du DOM (onglets, chargements API, modales)
+  domObserver = new MutationObserver((mutations) => {
+    let hasRelevantChanges = false;
+    for (const m of mutations) {
+      if (m.type === 'childList' && m.addedNodes.length > 0) {
+        for (const n of m.addedNodes) {
+          if (n.nodeType === Node.ELEMENT_NODE && !n.classList?.contains('topbar-language-wrapper')) {
+            hasRelevantChanges = true;
+            break;
+          }
+        }
+      } else if (m.type === 'characterData' && m.target) {
+        if (m.target.nodeValue !== m.target._hb_en_text && /[éèêàâùûîïôçA-Za-z]/.test(m.target.nodeValue)) {
+          hasRelevantChanges = true;
+        }
+      }
+      if (hasRelevantChanges) break;
+    }
+
+    if (hasRelevantChanges) {
+      if (domDebounceTimer) clearTimeout(domDebounceTimer);
+      domDebounceTimer = setTimeout(() => {
+        applyDOMTranslation('en');
+      }, 60);
+    }
+  });
+
+  const root = document.getElementById('root') || document.body;
+  if (root) {
+    domObserver.observe(root, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+  }
+
+  // Scan périodique court au début pour les données asynchrones d'API
+  if (domPollInterval) clearInterval(domPollInterval);
+  let count = 0;
+  domPollInterval = setInterval(() => {
+    count++;
+    applyDOMTranslation('en');
+    if (count > 8) {
+      clearInterval(domPollInterval);
+      domPollInterval = null;
+    }
+  }, 400);
 }
 
 export function stopDOMAutoTranslator() {
-  // DOM auto-translation disabled in favor of React native state translation
-  return;
+  if (domObserver) {
+    domObserver.disconnect();
+    domObserver = null;
+  }
+  if (domDebounceTimer) {
+    clearTimeout(domDebounceTimer);
+    domDebounceTimer = null;
+  }
+  if (domPollInterval) {
+    clearInterval(domPollInterval);
+    domPollInterval = null;
+  }
 }

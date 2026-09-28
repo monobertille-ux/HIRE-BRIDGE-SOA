@@ -15,15 +15,61 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <title>HireBridge Soa — Mairie de Soa</title>
     <style>
-      .goog-te-banner-frame, .skiptranslate, .goog-te-banner { display: none !important; }
-      body { top: 0px !important; position: static !important; }
-      #goog-gt-tt, .goog-te-balloon-frame { display: none !important; }
-      .goog-text-highlight { background-color: transparent !important; box-shadow: none !important; }
+      /* Masquer totalement tout spinner, loader, bannière ou élément résiduel Google */
+      .goog-te-spinner-pos,
+      .goog-te-spinner,
+      .goog-te-banner-frame,
+      .goog-te-banner,
+      #goog-gt-tt,
+      .goog-te-balloon-frame,
+      #goog-gt-vt,
+      .goog-tooltip,
+      .goog-tooltip-skin,
+      [class*="VIpgJd"],
+      [id*="goog-gt-"],
+      iframe.skiptranslate,
+      iframe[name^="goog-"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        max-width: 0 !important;
+        max-height: 0 !important;
+      }
+      body {
+        top: 0px !important;
+        position: static !important;
+      }
+      .goog-text-highlight {
+        background-color: transparent !important;
+        box-shadow: none !important;
+      }
+      #google_translate_element {
+        display: none !important;
+        position: absolute !important;
+        top: -9999px !important;
+        left: -9999px !important;
+      }
     </style>
   </head>
   <body>
     <noscript>Veuillez activer JavaScript pour utiliser l'application.</noscript>
     <div id="root"></div>
-    <div id="google_translate_element" style="display:none; visibility:hidden; position:absolute; left:-9999px;"></div>
+    <div id="google_translate_element"></div>
+
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        if (window.google && window.google.translate) {
+          new window.google.translate.TranslateElement({
+            pageLanguage: 'fr',
+            includedLanguages: 'fr,en',
+            autoDisplay: false
+          }, 'google_translate_element');
+        }
+      }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   </body>
 </html>

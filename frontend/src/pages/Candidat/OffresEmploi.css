@@ -10,6 +10,12 @@
   font-family: var(--hb-font-main, 'Montserrat', sans-serif);
 }
 
+.offres-page.embedded-in-dashboard {
+  min-height: auto;
+  background: transparent;
+  padding: 0;
+}
+
 /* ═══════════════════════════════════════
    HEADER INSTITUTIONNEL
 ═══════════════════════════════════════ */

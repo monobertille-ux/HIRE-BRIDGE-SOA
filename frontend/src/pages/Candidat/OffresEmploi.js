@@ -25,7 +25,7 @@ const REQUIRED_DOCS = {
 
 const API_BASE_URL = `http://${window.location.hostname}:5000`;
 
-const OffresEmploi = () => {
+const OffresEmploi = ({ embedded = false }) => {
   const navigate = useNavigate();
   const { language, t, tp } = useLanguage();
   const user = JSON.parse(localStorage.getItem('user') || 'null');
@@ -258,26 +258,28 @@ const OffresEmploi = () => {
 
   // ── RENDER ────────────────────────────────────────────────────────────────
   return (
-    <div className="offres-page">
-      {/* Header */}
-      <div className="offres-header">
-        <button className="back-btn" onClick={() => navigate(user ? '/candidat/dashboard' : '/')}>
-          <i className="fa-solid fa-arrow-left" /> Retour
-        </button>
-        <div className="offres-header-content">
-          <div className="offres-header-icon">
-            <i className="fa-solid fa-briefcase" />
+    <div className={`offres-page ${embedded ? 'embedded-in-dashboard' : ''}`}>
+      {/* Header (uniquement si page standalone hors dashboard) */}
+      {!embedded && (
+        <div className="offres-header">
+          <button className="back-btn" onClick={() => navigate(user ? '/candidat/dashboard' : '/')}>
+            <i className="fa-solid fa-arrow-left" /> {tp('Retour', 'Back')}
+          </button>
+          <div className="offres-header-content">
+            <div className="offres-header-icon">
+              <i className="fa-solid fa-briefcase" />
+            </div>
+            <div>
+              <h1>{tp("Offres d'Emploi & Stages", "Job Offers & Internships")}</h1>
+              <p>{tp("Mairie de Soa — Service des Ressources Humaines", "Soa Council — Human Resources Department")}</p>
+            </div>
           </div>
-          <div>
-            <h1>Offres d'Emploi & Stages</h1>
-            <p>Mairie de Soa — Service des Ressources Humaines</p>
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <LanguageSwitcher />
+            <AccessibilityToolbar />
           </div>
         </div>
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <LanguageSwitcher />
-          <AccessibilityToolbar />
-        </div>
-      </div>
+      )}
 
       {/* Onglets principaux */}
       <div className="main-tabs-container">

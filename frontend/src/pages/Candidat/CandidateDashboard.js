@@ -13,6 +13,7 @@ import {
   downloadChecklistPieces
 } from '../../utils/officialDocuments';
 import { getDynamicGreeting } from '../../utils/timeGreeting';
+import OffresEmploi from './OffresEmploi';
 import './CandidateDashboard.css';
 
 const API_BASE_URL = `http://${window.location.hostname}:5000`;
@@ -1191,7 +1192,7 @@ const CandidateDashboard = () => {
             <i className="fa-regular fa-calendar-days"></i> {t('nav_events', 'Calendrier & Événements')}
             {eventsList.length > 0 && <span className="nav-badge-pill blue">{eventsList.length}</span>}
           </button>
-          <button className="nav-item nav-item-highlight" onClick={() => navigate('/candidat/offres')}>
+          <button className={`nav-item ${activeTab === 'jobs' ? 'active' : ''}`} onClick={() => setActiveTab('jobs')}>
             <i className="fa-solid fa-briefcase"></i> {t('nav_jobs', "Offres d'Emploi & Stages")}
           </button>
           <button className={`nav-item ${activeTab === 'applications' ? 'active' : ''}`} onClick={() => setActiveTab('applications')}>
@@ -1428,7 +1429,7 @@ const CandidateDashboard = () => {
             <div className="opportunities-section">
               <div className="opportunities-header">
                 <h2>{language === 'en' ? 'Recommended opportunities' : 'Opportunités recommandées'}</h2>
-                <button type="button" className="btn-see-all-jobs" onClick={() => navigate('/candidat/offres')}>
+                <button type="button" className="btn-see-all-jobs" onClick={() => setActiveTab('jobs')}>
                   {language === 'en' ? 'View all offers' : 'Voir toutes les offres'} <i className="fa-solid fa-arrow-right" style={{ marginLeft: '6px' }} />
                 </button>
               </div>
@@ -1476,6 +1477,13 @@ const CandidateDashboard = () => {
               </div>
             </div>
 
+          </div>
+        )}
+
+        {/* ONGLET OFFRES D'EMPLOI & STAGES (INTÉGRÉ AVEC LA SIDEBAR) */}
+        {activeTab === 'jobs' && (
+          <div className="tab-fade">
+            <OffresEmploi embedded={true} />
           </div>
         )}
 
