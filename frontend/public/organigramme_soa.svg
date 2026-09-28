@@ -1,0 +1,184 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 950" width="100%" height="100%">
+  <defs>
+    <style>
+      .bg { fill: #ffffff; }
+      .title { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 24px; fill: #064e3b; text-anchor: middle; }
+      .box { fill: #ffffff; stroke: #047857; stroke-width: 2; rx: 8px; ry: 8px; }
+      .box-top { fill: #ecfdf5; stroke: #047857; stroke-width: 2.5; rx: 8px; ry: 8px; }
+      .box-highlight { fill: #047857; stroke: #064e3b; stroke-width: 2; rx: 8px; ry: 8px; }
+      .text-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 15px; fill: #0f172a; text-anchor: middle; }
+      .text-light { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 15px; fill: #ffffff; text-anchor: middle; }
+      .text-sub { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; font-size: 12px; fill: #334155; text-anchor: middle; }
+      .line { stroke: #0284c7; stroke-width: 2; fill: none; }
+      .line-green { stroke: #047857; stroke-width: 2; fill: none; }
+    </style>
+  </defs>
+  
+  <rect class="bg" width="1400" height="950" />
+  
+  <!-- Titre Principal -->
+  <text x="700" y="45" class="title">ORGANIGRAMME DE LA COMMUNE DE SOA</text>
+  <line x1="500" y1="58" x2="900" y2="58" stroke="#047857" stroke-width="3" />
+
+  <!-- Haut : Maire & Adjoints -->
+  <rect class="box-highlight" x="560" y="85" width="280" height="50" />
+  <text x="700" y="115" class="text-light">Maire et Adjoints</text>
+  
+  <!-- Ligne vers Secrétaire Général -->
+  <line x1="700" y1="135" x2="700" y2="165" class="line-green" />
+  
+  <!-- Secrétaire Général -->
+  <rect class="box-top" x="560" y="165" width="280" height="50" />
+  <text x="700" y="195" class="text-title">Secrétaire Général (SG)</text>
+  
+  <!-- Blocs de gauche (Rattachés au Cabinet/Maire) -->
+  <line x1="560" y1="110" x2="420" y2="110" class="line" />
+  <line x1="420" y1="110" x2="420" y2="280" class="line" />
+
+  <rect class="box" x="250" y="90" width="200" height="40" />
+  <text x="350" y="115" class="text-sub">Cabinet du Maire</text>
+
+  <rect class="box" x="250" y="140" width="200" height="40" />
+  <text x="350" y="165" class="text-sub">Recette Municipale</text>
+
+  <rect class="box" x="250" y="190" width="200" height="40" />
+  <text x="350" y="215" class="text-sub">Comptabilité-Matières</text>
+
+  <rect class="box" x="250" y="240" width="200" height="40" />
+  <text x="350" y="265" class="text-sub">Police Municipale</text>
+
+  <!-- Blocs de droite (Services Rattachés au SG) -->
+  <line x1="840" y1="190" x2="950" y2="190" class="line" />
+  <line x1="950" y1="100" x2="950" y2="290" class="line" />
+
+  <rect class="box" x="950" y="80" width="380" height="38" />
+  <text x="1140" y="104" class="text-sub">Cellule de la Communication, des Projets et de la Coopération</text>
+
+  <rect class="box" x="950" y="125" width="380" height="38" />
+  <text x="1140" y="149" class="text-sub">Service de la Traduction et de la Promotion du Bilinguisme</text>
+
+  <rect class="box" x="950" y="170" width="380" height="38" />
+  <text x="1140" y="194" class="text-sub">Service de l'Audit Interne et du Contrôle de Gestion</text>
+
+  <rect class="box" x="950" y="215" width="380" height="38" />
+  <text x="1140" y="239" class="text-sub">Service des Affaires Juridiques et du Contentieux</text>
+
+  <rect class="box" x="950" y="260" width="380" height="38" />
+  <text x="1140" y="284" class="text-sub">Bureau d'Ordre et du Courrier</text>
+
+  <!-- Ligne Horizontale Principale des Services Technico-Administratifs -->
+  <line x1="700" y1="215" x2="700" y2="340" class="line-green" />
+  <line x1="100" y1="340" x2="1300" y2="340" class="line-green" />
+
+  <!-- COLUMN 1: Affaires Générales -->
+  <line x1="100" y1="340" x2="100" y2="380" class="line-green" />
+  <rect class="box-top" x="10" y="380" width="180" height="55" />
+  <text x="100" y="405" class="text-title">Service Affaires</text>
+  <text x="100" y="423" class="text-title">Générales</text>
+
+  <line x1="100" y1="435" x2="100" y2="470" class="line" />
+  <rect class="box" x="10" y="470" width="180" height="50" />
+  <text x="100" y="492" class="text-sub">Bureau Personnel,</text>
+  <text x="100" y="508" class="text-sub">Solde &amp; Pensions</text>
+
+  <rect class="box" x="10" y="530" width="180" height="50" />
+  <text x="100" y="552" class="text-sub">Bureau État-Civil</text>
+  <text x="100" y="568" class="text-sub">&amp; Démographie</text>
+
+  <rect class="box" x="10" y="590" width="180" height="50" />
+  <text x="100" y="612" class="text-sub">Bureau Archives</text>
+  <text x="100" y="628" class="text-sub">&amp; Documentation</text>
+
+  <!-- COLUMN 2: Systèmes d'Information -->
+  <line x1="300" y1="340" x2="300" y2="380" class="line-green" />
+  <rect class="box-top" x="210" y="380" width="180" height="55" />
+  <text x="300" y="405" class="text-title">Systèmes</text>
+  <text x="300" y="423" class="text-title">d'Information</text>
+
+  <line x1="300" y1="435" x2="300" y2="470" class="line" />
+  <rect class="box" x="210" y="470" width="180" height="50" />
+  <text x="300" y="492" class="text-sub">Section Études &amp;</text>
+  <text x="300" y="508" class="text-sub">Développement</text>
+
+  <rect class="box" x="210" y="530" width="180" height="50" />
+  <text x="300" y="552" class="text-sub">Section Exploitation</text>
+  <text x="300" y="568" class="text-sub">&amp; Maintenance</text>
+
+  <!-- COLUMN 3: Budget & Finances -->
+  <line x1="500" y1="340" x2="500" y2="380" class="line-green" />
+  <rect class="box-top" x="410" y="380" width="180" height="55" />
+  <text x="500" y="405" class="text-title">Service Budget</text>
+  <text x="500" y="423" class="text-title">&amp; Finances</text>
+
+  <line x1="500" y1="435" x2="500" y2="470" class="line" />
+  <rect class="box" x="410" y="470" width="180" height="50" />
+  <text x="500" y="492" class="text-sub">Bureau Assiette</text>
+  <text x="500" y="508" class="text-sub">Fiscale &amp; Recouvrement</text>
+
+  <rect class="box" x="410" y="530" width="180" height="50" />
+  <text x="500" y="552" class="text-sub">Bureau Économique &amp;</text>
+  <text x="500" y="568" class="text-sub">Équipements</text>
+
+  <rect class="box" x="410" y="590" width="180" height="50" />
+  <text x="500" y="612" class="text-sub">Bureau Dépenses &amp;</text>
+  <text x="500" y="628" class="text-sub">Approvisionnements</text>
+
+  <!-- COLUMN 4: Service Technique & Aménagement -->
+  <line x1="700" y1="340" x2="700" y2="380" class="line-green" />
+  <rect class="box-top" x="610" y="380" width="180" height="55" />
+  <text x="700" y="405" class="text-title">Service Technique &amp;</text>
+  <text x="700" y="423" class="text-title">Aménagement</text>
+
+  <line x1="700" y1="435" x2="700" y2="470" class="line" />
+  <rect class="box" x="610" y="470" width="180" height="50" />
+  <text x="700" y="492" class="text-sub">Bureau Planification &amp;</text>
+  <text x="700" y="508" class="text-sub">Aménagement Urbain</text>
+
+  <rect class="box" x="610" y="530" width="180" height="50" />
+  <text x="700" y="552" class="text-sub">Bureau Urbanisme &amp;</text>
+  <text x="700" y="568" class="text-sub">Constructions</text>
+
+  <rect class="box" x="610" y="590" width="180" height="50" />
+  <text x="700" y="612" class="text-sub">Bureau Circulation</text>
+  <text x="700" y="628" class="text-sub">&amp; Voirie</text>
+
+  <rect class="box" x="610" y="650" width="180" height="50" />
+  <text x="700" y="680" class="text-sub">Bureau des Travaux</text>
+
+  <!-- COLUMN 5: Hygiène & Salubrité -->
+  <line x1="900" y1="340" x2="900" y2="380" class="line-green" />
+  <rect class="box-top" x="810" y="380" width="180" height="55" />
+  <text x="900" y="405" class="text-title">Service Hygiène</text>
+  <text x="900" y="423" class="text-title">&amp; Salubrité</text>
+
+  <line x1="900" y1="435" x2="900" y2="470" class="line" />
+  <rect class="box" x="810" y="470" width="180" height="50" />
+  <text x="900" y="492" class="text-sub">Bureau Hygiène &amp;</text>
+  <text x="900" y="508" class="text-sub">Salubrité Publique</text>
+
+  <rect class="box" x="810" y="530" width="180" height="50" />
+  <text x="900" y="552" class="text-sub">Bureau Environnement</text>
+  <text x="900" y="568" class="text-sub">&amp; Protection Civile</text>
+
+  <!-- COLUMN 6: Affaires Sociales & Éducation -->
+  <line x1="1100" y1="340" x2="1100" y2="380" class="line-green" />
+  <rect class="box-top" x="1010" y="380" width="180" height="55" />
+  <text x="1100" y="405" class="text-title">Affaires Sociales &amp;</text>
+  <text x="1100" y="423" class="text-title">Éducation</text>
+
+  <line x1="1100" y1="435" x2="1100" y2="470" class="line" />
+  <rect class="box" x="1010" y="470" width="180" height="50" />
+  <text x="1100" y="492" class="text-sub">Bureau Éducation,</text>
+  <text x="1100" y="508" class="text-sub">Culture &amp; Sport</text>
+
+  <rect class="box" x="1010" y="530" width="180" height="50" />
+  <text x="1100" y="552" class="text-sub">Bureau Santé &amp;</text>
+  <text x="1100" y="568" class="text-sub">Action Sociale</text>
+
+  <!-- COLUMN 7: Marchés Publics -->
+  <line x1="1300" y1="340" x2="1300" y2="380" class="line-green" />
+  <rect class="box-top" x="1210" y="380" width="180" height="55" />
+  <text x="1300" y="405" class="text-title">Service Marchés</text>
+  <text x="1300" y="423" class="text-title">Publics</text>
+
+</svg>

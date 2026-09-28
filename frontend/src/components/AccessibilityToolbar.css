@@ -1,0 +1,470 @@
+/* =========================================================================
+   BOUTON D'ACCESSIBILITÉ TOPBAR (ALIGNÉ À CÔTÉ DE LA NOTIFICATION)
+   ========================================================================= */
+.topbar-access-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.btn-access-topbar {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  color: #074696;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.btn-access-topbar:hover,
+.btn-access-topbar.active {
+  background: #eff6ff;
+  border-color: #074696;
+  color: #074696;
+  box-shadow: 0 4px 14px rgba(7, 70, 150, 0.15);
+  transform: translateY(-1px);
+}
+
+.btn-access-topbar.is-dark-active {
+  color: #1b8a53;
+}
+
+.access-active-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #1b8a53;
+  border: 1.5px solid #ffffff;
+}
+
+/* Panneau déroulant d'accessibilité */
+.accessibility-panel-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 300px;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 16px 40px rgba(7, 70, 150, 0.2), 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: 1.5px solid #cbd5e1;
+  padding: 16px;
+  z-index: 9999;
+  animation: dropDownFast 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: #074696;
+  padding-bottom: 10px;
+  border-bottom: 1.5px solid #f1f5f9;
+  margin-bottom: 14px;
+}
+
+.panel-header span i {
+  color: #1b8a53;
+  margin-right: 6px;
+}
+
+.close-panel-btn {
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  color: #64748b;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.close-panel-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.access-option {
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.option-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.access-btn {
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  color: #0f172a;
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.84rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.access-btn:hover, .access-btn.active {
+  background: linear-gradient(135deg, #074696, #003679);
+  color: #ffffff;
+  border-color: #074696;
+}
+
+.font-size-group {
+  display: flex;
+  gap: 8px;
+}
+
+.font-btn {
+  flex: 1;
+  background: #f1f5f9;
+  border: 1.5px solid #cbd5e1;
+  color: #0f172a;
+  padding: 7px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.font-btn:hover, .font-btn.active {
+  background: #1b8a53;
+  color: #ffffff;
+  border-color: #1b8a53;
+}
+
+@keyframes dropDownFast {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================================================
+   THÈME SOMBRE VÉRITABLE FAÇON WHATSAPP (AMOLED DEEP TEAL / OBSIDIAN)
+   ========================================================================= */
+
+body.dark-mode {
+  background-color: #0b141a !important;
+  color: #e9edef !important;
+}
+
+/* Bouton accessibilité dans la topbar en mode sombre */
+body.dark-mode .btn-access-topbar {
+  background: #202c33 !important;
+  border-color: #2a3942 !important;
+  color: #34d399 !important;
+}
+
+body.dark-mode .btn-access-topbar:hover,
+body.dark-mode .btn-access-topbar.active {
+  background: #2a3942 !important;
+  border-color: #00a884 !important;
+  color: #ffffff !important;
+}
+
+body.dark-mode .accessibility-panel-dropdown {
+  background: #111b21 !important;
+  border-color: #222d34 !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7) !important;
+}
+
+body.dark-mode .panel-header {
+  border-bottom-color: #222d34 !important;
+  color: #e9edef !important;
+}
+
+body.dark-mode .close-panel-btn {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #94a3b8 !important;
+}
+
+/* Conteneurs et Layouts */
+body.dark-mode .candidate-dashboard-container,
+body.dark-mode .admin-container,
+body.dark-mode .superadmin-layout,
+body.dark-mode .public-portal-container,
+body.dark-mode .auth-page-container,
+body.dark-mode .dashboard-main,
+body.dark-mode .analytics-section,
+body.dark-mode .auth-card {
+  background-color: #0b141a !important;
+  color: #e9edef !important;
+}
+
+/* Sidebars & En-têtes */
+body.dark-mode .candidate-sidebar,
+body.dark-mode .admin-sidebar,
+body.dark-mode .superadmin-sidebar,
+body.dark-mode .sidebar-header,
+body.dark-mode .topbar,
+body.dark-mode .admin-topbar,
+body.dark-mode .superadmin-topbar,
+body.dark-mode .dashboard-top-nav,
+body.dark-mode .header-search-box {
+  background-color: #111b21 !important;
+  border-color: #222d34 !important;
+  color: #e9edef !important;
+}
+
+/* Cartes, Boîtes, Modales et Panneaux */
+body.dark-mode .stat-card,
+body.dark-mode .dashboard-card,
+body.dark-mode .job-card,
+body.dark-mode .training-card,
+body.dark-mode .agenda-event-row-card,
+body.dark-mode .official-rh-notice-card,
+body.dark-mode .messaging-hero-card,
+body.dark-mode .chat-interface-card,
+body.dark-mode .settings-card-box,
+body.dark-mode .ticket-row-card,
+body.dark-mode .ticket-card-row,
+body.dark-mode .support-faq-card,
+body.dark-mode .faq-item-accordion,
+body.dark-mode .guide-download-card,
+body.dark-mode .admin-metric-card,
+body.dark-mode .candidate-card,
+body.dark-mode .profile-summary-box,
+body.dark-mode .modal-content,
+body.dark-mode .discharge-preview,
+body.dark-mode .quick-action-card,
+body.dark-mode .admin-chat-split-container {
+  background-color: #111b21 !important;
+  border-color: #222d34 !important;
+  color: #e9edef !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Sous-éléments et hover */
+body.dark-mode .agenda-info-col,
+body.dark-mode .agenda-date-box,
+body.dark-mode .chat-header-bar,
+body.dark-mode .chat-messages-viewport,
+body.dark-mode .notice-content-box,
+body.dark-mode .setting-toggle-row,
+body.dark-mode .faq-accordion-item,
+body.dark-mode .ticket-message-bubble,
+body.dark-mode .tab-navigation,
+body.dark-mode .admin-tabs-bar {
+  background-color: #111b21 !important;
+  border-color: #222d34 !important;
+}
+
+/* Textes, Titres et Descriptions */
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5,
+body.dark-mode strong,
+body.dark-mode .agenda-event-title,
+body.dark-mode .messaging-hero-title,
+body.dark-mode .job-title-card,
+body.dark-mode .section-header-admin h3 {
+  color: #e9edef !important;
+}
+
+body.dark-mode p,
+body.dark-mode span:not(.live-pulse-dot):not(.fab-badge):not(.status-indicator-dot):not(.bell-badge-pill):not(.nav-badge-pill),
+body.dark-mode small,
+body.dark-mode .messaging-hero-subtitle,
+body.dark-mode .agenda-event-desc,
+body.dark-mode .setting-toggle-info span,
+body.dark-mode .option-title {
+  color: #8696a0 !important;
+}
+
+/* Formulaires, Champs et Sélecteurs */
+body.dark-mode input[type="text"],
+body.dark-mode input[type="password"],
+body.dark-mode input[type="email"],
+body.dark-mode input[type="number"],
+body.dark-mode input[type="date"],
+body.dark-mode select,
+body.dark-mode textarea,
+body.dark-mode .chat-input-main-row textarea,
+body.dark-mode .form-field input,
+body.dark-mode .form-field select,
+body.dark-mode .form-field textarea {
+  background-color: #202c33 !important;
+  border-color: #2a3942 !important;
+  color: #e9edef !important;
+}
+
+body.dark-mode input:focus,
+body.dark-mode select:focus,
+body.dark-mode textarea:focus {
+  border-color: #00a884 !important;
+  box-shadow: 0 0 0 2px rgba(0, 168, 132, 0.25) !important;
+}
+
+/* Tableaux de données */
+body.dark-mode table,
+body.dark-mode th,
+body.dark-mode td,
+body.dark-mode .admin-table,
+body.dark-mode .superadmin-table,
+body.dark-mode .user-audit-table {
+  background-color: #111b21 !important;
+  border-color: #222d34 !important;
+  color: #e9edef !important;
+}
+
+body.dark-mode tr:hover td {
+  background-color: #202c33 !important;
+}
+
+/* Boutons, Tabs et Accents */
+body.dark-mode .tab-btn.active,
+body.dark-mode .admin-nav-item.active,
+body.dark-mode .settings-nav-tab.active,
+body.dark-mode .sidebar-nav-item.active,
+body.dark-mode .nav-item.active {
+  background: linear-gradient(135deg, #074696, #003679) !important;
+  color: #ffffff !important;
+  border-color: #1b8a53 !important;
+}
+
+body.dark-mode .btn-primary,
+body.dark-mode .save-all-btn,
+body.dark-mode .confirm-btn,
+body.dark-mode .btn-send-message {
+  background: linear-gradient(135deg, #074696, #1b8a53) !important;
+  color: #ffffff !important;
+}
+
+body.dark-mode .btn-secondary,
+body.dark-mode .cancel-btn,
+body.dark-mode .cancel-edit-btn,
+body.dark-mode .btn-agenda-details,
+body.dark-mode .btn-download-guide {
+  background: #202c33 !important;
+  color: #e9edef !important;
+  border-color: #2a3942 !important;
+}
+
+body.dark-mode .btn-download-guide:hover {
+  background: #1b8a53 !important;
+  color: #ffffff !important;
+  border-color: #1b8a53 !important;
+}
+
+body.dark-mode .chip-btn,
+body.dark-mode .quick-chip,
+body.dark-mode .sugg-chip,
+body.dark-mode .faq-chip {
+  background: #202c33 !important;
+  border-color: #1b8a53 !important;
+  color: #34d399 !important;
+}
+
+body.dark-mode .chip-btn:hover,
+body.dark-mode .quick-chip:hover,
+body.dark-mode .faq-chip:hover,
+body.dark-mode .faq-chip.active {
+  background: #1b8a53 !important;
+  color: #ffffff !important;
+}
+
+body.dark-mode .access-btn {
+  background: #202c33 !important;
+  border-color: #2a3942 !important;
+  color: #e9edef !important;
+}
+
+body.dark-mode .font-btn {
+  background: #202c33 !important;
+  border-color: #2a3942 !important;
+  color: #e9edef !important;
+}
+
+/* Mode sombre pour le Calendrier Compact */
+body.dark-mode .calendar-compact-container {
+  background: #111b21 !important;
+  border-color: #222d34 !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+body.dark-mode .calendar-weekdays-header-compact {
+  border-bottom-color: #222d34 !important;
+  color: #34d399 !important;
+}
+
+body.dark-mode .compact-day-cell {
+  background: #111b21 !important;
+  border-color: #222d34 !important;
+}
+
+body.dark-mode .compact-day-cell:hover {
+  background: #202c33 !important;
+  border-color: #00a884 !important;
+}
+
+body.dark-mode .compact-day-cell.other-month {
+  background: #0b141a !important;
+  opacity: 0.3 !important;
+  border-color: #1a2329 !important;
+}
+
+body.dark-mode .compact-day-cell.is-today {
+  border-color: #00a884 !important;
+  background: rgba(0, 168, 132, 0.12) !important;
+}
+
+body.dark-mode .compact-day-cell.has-events {
+  background: rgba(0, 168, 132, 0.08) !important;
+  border-color: #00a884 !important;
+}
+
+body.dark-mode .compact-day-number {
+  color: #e9edef !important;
+}
+
+body.dark-mode .compact-day-number.today-pill {
+  background: #00a884 !important;
+  color: #ffffff !important;
+}
+
+body.dark-mode .calendar-compact-legend {
+  border-top-color: #222d34 !important;
+  color: #8696a0 !important;
+}
+
+/* Contraste Élevé */
+body.high-contrast {
+  filter: contrast(135%);
+}
+
+body.font-lg {
+  font-size: 112% !important;
+}
+
+body.font-xl {
+  font-size: 125% !important;
+}
+

@@ -1,0 +1,780 @@
+/* =========================================================================
+   PORTAIL PUBLIC MUNICIPAL — MAIRIE DE SOA (REPRODUCTION TRAIT POUR TRAIT)
+   ========================================================================= */
+
+.public-portal-container {
+  min-height: 100vh;
+  background-color: #ffffff;
+  color: #334155;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 1. BARRE CIVIQUE SUPERIEURE (NOIR-BLEU SOMBRE #040e1e - TRAIT POUR TRAIT) */
+.top-civic-bar {
+  background: #040e1e;
+  color: #ffffff;
+  font-size: 0.78rem;
+  padding: 8px 36px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.civic-bar-inner {
+  max-width: 1360px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.civic-tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.cameroun-flag-badge {
+  font-size: 1rem;
+}
+
+.civic-tools {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.top-utility-btn {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.top-access-item {
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+/* SÉLECTEUR DE LANGUE EN PILULE BLANCHE */
+.lang-pill-white {
+  background: #ffffff;
+  color: #0b192c;
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-weight: 700;
+  font-size: 0.76rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+/* 2. HEADER NAVBAR PRINCIPALE (BLANC PUR TRAIT POUR TRAIT) */
+.public-header {
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 14px 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+}
+
+.header-coat {
+  height: 46px;
+  width: auto;
+  object-fit: contain;
+}
+
+.brand-titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.mairie-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0d2137;
+  letter-spacing: -0.3px;
+  line-height: 1.15;
+}
+
+.highlight-soa {
+  color: #00a859;
+}
+
+.portal-sub {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #718096;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.public-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-link {
+  background: transparent;
+  border: none;
+  padding: 8px 12px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: #4a5568;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.nav-link i {
+  font-size: 0.95rem;
+  color: #718096;
+}
+
+.nav-link.active {
+  color: #00a859;
+  font-weight: 700;
+}
+
+.nav-link.active i {
+  color: #00a859;
+}
+
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -16px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #00a859;
+  border-radius: 2px 2px 0 0;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-espace-candidat-pill {
+  background: #0f5b8c;
+  color: #ffffff;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 24px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(15, 91, 140, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-espace-candidat-pill:hover {
+  background: #0c4a73;
+}
+
+.btn-header-search-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  color: #0d2137;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.btn-header-search-circle:hover {
+  border-color: #00a859;
+  color: #00a859;
+}
+
+/* 3. HERO MOCKUP SECTION (DÔME BLEU GLACÉ À COURBE LISSE ET GLOW BLANC TRAIT POUR TRAIT) */
+.hero-section-arche {
+  background: #ffffff;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.hero-arche-container {
+  display: flex;
+  min-height: 540px;
+  position: relative;
+}
+
+.hero-arche-left {
+  width: 54%;
+  background: #ebf3fe;
+  padding: 56px 40px 56px 80px;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* SÉPARATEUR EN DÔME LISSE ET RUBAN BLANC FLUIDE LUMINEUX */
+.hero-arche-divider-svg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 12%;
+  height: 100%;
+  z-index: 3;
+  pointer-events: none;
+  filter: drop-shadow(4px 0 10px rgba(0, 56, 168, 0.1));
+}
+
+.hero-arche-divider-svg svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.kicker-tag-blue {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #e0e7ff;
+  color: #1e3a8a;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  width: fit-content;
+  margin-bottom: 24px;
+}
+
+.hero-headline {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 2.75rem;
+  font-weight: 800;
+  color: #0b192c;
+  line-height: 1.2;
+  margin-bottom: 18px;
+  letter-spacing: -0.8px;
+}
+
+.green-soa-text {
+  color: #00a859;
+}
+
+.hero-subtext {
+  font-size: 1.02rem;
+  color: #4a5568;
+  line-height: 1.6;
+  margin-bottom: 32px;
+  max-width: 560px;
+}
+
+.hero-buttons-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.btn-consulter-green {
+  background: #00a859;
+  color: #ffffff;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 16px rgba(0, 168, 89, 0.3);
+  transition: all 0.2s ease;
+}
+
+.btn-consulter-green:hover {
+  background: #008746;
+  transform: translateY(-1px);
+}
+
+.btn-deposer-white {
+  background: #ffffff;
+  color: #1e3a8a;
+  border: 1.5px solid #1e3a8a;
+  padding: 13px 26px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+}
+
+.btn-deposer-white:hover {
+  background: #f8fafc;
+}
+
+/* 3 CARDS STATISTIQUES BLANCHES (EXACTEMENT COMME LA MAQUETTE) */
+.hero-stat-cards {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stat-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  flex: 1;
+}
+
+.stat-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.stat-icon.blue {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.stat-icon.green {
+  background: #e6f7ef;
+  color: #00a859;
+}
+
+.stat-icon.teal {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.stat-value {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0b192c;
+  line-height: 1.1;
+}
+
+.stat-label {
+  font-size: 0.74rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* PANEL DROIT ET PHOTO ÉCLAIRCIE / NETTE DE LA MAIRIE DE SOA */
+.hero-arche-right {
+  width: 50%;
+  margin-left: -4%;
+  position: relative;
+  overflow: hidden;
+}
+
+.hotel-ville-soa-img.sharp-bright {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: brightness(1.12) contrast(1.08) saturate(1.08);
+  transition: filter 0.3s ease;
+}
+
+/* BADGE FLOOTTANT SOMBRE SUR LA PHOTO */
+.dark-building-badge-card {
+  position: absolute;
+  bottom: 24px;
+  left: 40px;
+  right: 40px;
+  background: #071527;
+  border-radius: 14px;
+  padding: 16px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #ffffff;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+.green-landmark-box {
+  width: 44px;
+  height: 44px;
+  background: #00a859;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.badge-text-box {
+  flex: 1;
+  margin-left: 14px;
+}
+
+.badge-text-box h4 {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 2px;
+}
+
+.badge-text-box p {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.badge-arrow-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #1e293b;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+/* 4. SECTION "— POUR VOUS — UN SERVICE PUBLIC MODERNE ET ACCESSIBLE" (EXACTEMENT COMME LA MAQUETTE) */
+.pour-vous-section {
+  padding: 60px 32px 64px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.section-container {
+  max-width: 1320px;
+  margin: 0 auto;
+}
+
+.pour-vous-title-block {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.pour-vous-kicker {
+  color: #00a859;
+  font-weight: 800;
+  font-size: 0.82rem;
+  letter-spacing: 1.2px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.pour-vous-title-block h2 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0b192c;
+  letter-spacing: -0.5px;
+}
+
+.pour-vous-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.pv-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 26px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.pv-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  border-color: #cbd5e1;
+}
+
+.pv-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  margin-bottom: 20px;
+}
+
+.pv-icon-box.blue {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.pv-icon-box.green {
+  background: #e6f7ef;
+  color: #00a859;
+}
+
+.pv-icon-box.slate {
+  background: #f1f5f9;
+  color: #1e3a8a;
+}
+
+.pv-icon-box.teal {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.pv-card h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0b192c;
+  margin-bottom: 8px;
+}
+
+.pv-card p {
+  font-size: 0.88rem;
+  color: #64748b;
+  line-height: 1.55;
+  margin-bottom: 20px;
+}
+
+.pv-bottom-arrow {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.pv-card:hover .pv-bottom-arrow {
+  color: #00a859;
+  transform: translateX(4px);
+}
+
+/* 5. CONTENU DES ONGLETS */
+.public-main-content {
+  padding: 56px 32px 80px;
+  flex: 1;
+}
+
+.jobs-header-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 36px;
+}
+
+.section-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0b192c;
+  margin-bottom: 6px;
+}
+
+.section-subtitle {
+  font-size: 0.94rem;
+  color: #64748b;
+}
+
+.jobs-controls-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.search-box-modern input {
+  padding: 10px 16px 10px 38px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 0.88rem;
+}
+
+.filter-pills {
+  display: flex;
+  gap: 6px;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 10px;
+}
+
+.pill {
+  border: none;
+  background: transparent;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.pill.active {
+  background: #00a859;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.jobs-grid-public {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 24px;
+}
+
+.public-job-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.contract-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.contract-badge.cdi { background: #e6f7ef; color: #008746; }
+.contract-badge.cdd { background: #eff6ff; color: #1e3a8a; }
+.contract-badge.stage { background: #fffbeb; color: #d97706; }
+
+.job-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0b192c;
+  margin-top: 10px;
+}
+
+.apply-btn-card {
+  background: #00a859;
+  color: #ffffff;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* FOOTER */
+.public-footer {
+  background: #040e1e;
+  color: #94a3b8;
+  padding: 50px 32px 24px;
+}
+
+.footer-container {
+  max-width: 1320px;
+  margin: 0 auto;
+}
+
+.footer-cols {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 40px;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.footer-logo img {
+  height: 36px;
+}
+
+.footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 20px;
+  text-align: center;
+  font-size: 0.82rem;
+}
+
+/* RESPONSIVE MOCKUP */
+@media (max-width: 1024px) {
+  .hero-arche-left {
+    width: 65%;
+    padding: 40px;
+  }
+  .pour-vous-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-arche-container {
+    flex-direction: column;
+  }
+  .hero-arche-left {
+    width: 100%;
+    border-radius: 0;
+    padding: 40px 24px;
+  }
+  .hero-arche-right {
+    width: 100%;
+    margin-left: 0;
+    min-height: 350px;
+  }
+  .pour-vous-grid-4 {
+    grid-template-columns: 1fr;
+  }
+}
+

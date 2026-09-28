@@ -1,0 +1,1257 @@
+/* =========================================================================
+   ESPACE RH MUNICIPAL — MAIRIE DE SOA (ESTHÉTIQUE SOFT & HUMANISE)
+   ========================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+.admin-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8fafc;
+  font-family: 'Plus Jakarta Sans', 'Montserrat', sans-serif;
+  color: #0b192c;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   SIDEBAR RH (BLEU RÉPUBLICAIN PROFOND & ACCENTS VERT ÉMERAUDE)
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.admin-sidebar {
+  width: 280px;
+  background: linear-gradient(180deg, #041430 0%, #001738 100%);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 24px 18px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  box-shadow: 4px 0 24px rgba(4, 20, 48, 0.15);
+  z-index: 105;
+}
+
+.admin-sidebar .sidebar-header {
+  margin-bottom: 20px;
+}
+
+.admin-sidebar .sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.admin-sidebar .sidebar-logo img {
+  height: 42px;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
+}
+
+.admin-sidebar .sidebar-logo-text {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
+.admin-sidebar .sidebar-logo-text span {
+  color: #6ee7b7;
+}
+
+.admin-sidebar .app-brand {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  margin-top: 4px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #38bdf8;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-sidebar .app-brand.red {
+  color: #38bdf8;
+}
+
+.admin-sidebar .sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 16px 0;
+  flex: 1;
+}
+
+.admin-sidebar .nav-item {
+  background: transparent;
+  border: none;
+  border-left: 4px solid transparent;
+  color: #94a3b8;
+  padding: 11px 16px;
+  border-radius: 12px;
+  text-align: left;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 100%;
+}
+
+.admin-sidebar .nav-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+  transform: translateX(4px);
+}
+
+.admin-sidebar .nav-item.active {
+  background: linear-gradient(135deg, rgba(0, 168, 89, 0.22) 0%, rgba(0, 168, 89, 0.06) 100%);
+  color: #6ee7b7;
+  border-left-color: #00a859;
+  font-weight: 800;
+  box-shadow: 0 4px 16px rgba(0, 168, 89, 0.15);
+}
+
+.nav-badge-pill {
+  margin-left: auto;
+  background: #00a859;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.nav-badge-pill.red {
+  background: #ef4444;
+}
+
+/* PIED DE SIDEBAR RH */
+.admin-sidebar .sidebar-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 16px;
+  margin-top: 12px;
+}
+
+.user-profile-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-info .user-name {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #ffffff;
+  display: block;
+}
+
+.user-info .user-role {
+  font-size: 0.75rem;
+  color: #6ee7b7;
+  font-weight: 600;
+}
+
+.logout-btn {
+  background: rgba(239, 68, 68, 0.14);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.84rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  margin-left: auto;
+}
+
+.logout-btn:hover {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   CONTENU PRINCIPAL & TOPBAR CIVIQUE (ALIGNÉE DASHBOARD CANDIDAT)
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.admin-main {
+  flex: 1;
+  padding: 24px 36px 40px 36px;
+  overflow-y: auto;
+  max-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.admin-topbar {
+  margin-bottom: 24px;
+  padding: 14px 24px;
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px rgba(11, 25, 44, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 99;
+}
+
+/* CIVIC HEADER BADGE DE TOPBAR */
+.civic-portal-header-badge {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.civic-portal-icon-box {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #041430 0%, #002b75 100%);
+  color: #6ee7b7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  box-shadow: 0 6px 16px rgba(4, 20, 48, 0.18);
+  flex-shrink: 0;
+}
+
+.civic-portal-icon-box.rh {
+  background: linear-gradient(135deg, #041430 0%, #004b99 100%);
+}
+
+.civic-portal-kicker {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.civic-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #00a859;
+  box-shadow: 0 0 0 0 rgba(0, 168, 89, 0.7);
+  animation: pulseDot 2s infinite;
+  display: inline-block;
+}
+
+@keyframes pulseDot {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 168, 89, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(0, 168, 89, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 168, 89, 0); }
+}
+
+.civic-portal-main-heading {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #041430;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.mairie-highlight {
+  color: #041430;
+}
+
+.soa-green-glow {
+  color: #00a859;
+}
+
+.title-dash {
+  color: #cbd5e1;
+  margin: 0 4px;
+}
+
+/* BADGE UTILISATEUR RH DANS LA TOPBAR */
+.topbar-user-badge-rh {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #ffffff;
+  padding: 6px 16px 6px 8px;
+  border-radius: 30px;
+  border: 1.5px solid #e2e8f0;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+}
+
+.topbar-user-badge-rh:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.topbar-rh-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #00a859;
+}
+
+.topbar-rh-meta {
+  text-align: left;
+  line-height: 1.25;
+}
+
+.topbar-rh-name {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #0b192c;
+  display: block;
+}
+
+.topbar-rh-status {
+  font-size: 0.7rem;
+  color: #059669;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.topbar-rh-status i {
+  font-size: 0.5rem;
+  color: #00a859;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   STATUS BANNER & TOAST NOTIFICATION (AUTO-DISMISS & SOFT)
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.status-banner {
+  margin: 0 0 20px 0;
+  padding: 12px 20px;
+  border-radius: 14px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+  animation: slideInToast 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.3s ease;
+}
+
+@keyframes slideInToast {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.status-banner.success {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.status-banner.error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.status-banner.info {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.status-banner-close {
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: currentColor;
+  opacity: 0.6;
+  cursor: pointer;
+  padding: 0 4px;
+  border-radius: 4px;
+  transition: opacity 0.2s ease;
+}
+
+.status-banner-close:hover {
+  opacity: 1;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   STAT CARDS & METRICKS ANALYTIQUES (HUMANISÉ & SOFT)
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.stats-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.admin-stat-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 22px 24px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0 4px 20px rgba(11, 25, 44, 0.04);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(11, 25, 44, 0.08);
+  border-color: #cbd5e1;
+}
+
+.admin-stat-card i {
+  font-size: 1.6rem;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.admin-stat-card.blue i { background: #eff6ff; color: #1d4ed8; }
+.admin-stat-card.green i { background: #ecfdf5; color: #059669; }
+.admin-stat-card.purple i { background: #f3e8ff; color: #7c3aed; }
+.admin-stat-card.orange i { background: #fff7ed; color: #ea580c; }
+
+.admin-stat-card h3 {
+  font-family: 'Montserrat', sans-serif;
+  margin: 0;
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #041430;
+  line-height: 1;
+}
+
+.admin-stat-card p {
+  margin: 4px 0 0 0;
+  font-size: 0.84rem;
+  color: #64748b;
+  font-weight: 700;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   TABLES & CARTE CONTENEUR DE DONNÉES
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.table-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 28px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px rgba(11, 25, 44, 0.04);
+  overflow-x: auto;
+  margin-bottom: 28px;
+}
+
+.table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1.5px solid #f1f5f9;
+}
+
+.table-header h3 {
+  font-family: 'Montserrat', sans-serif;
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #041430;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 14px 18px;
+  text-align: left;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.9rem;
+}
+
+.admin-table th {
+  background: #f8fafc;
+  color: #475569;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.admin-table tr:hover td {
+  background: #f8fafc;
+}
+
+/* BOUTONS D'ACTION RH SUR TABLEAU */
+.action-btn {
+  border: none;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.action-btn.visio { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.action-btn.accept { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+.action-btn.reject { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   GRAPHIQUES ANALYTIQUES & CARTES DE PROVENANCE ET ATTRACTIVITÉ (SOFT & CIVIQUE)
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.charts-grid-two {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.analytics-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 28px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px rgba(11, 25, 44, 0.04);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.analytics-card:hover {
+  box-shadow: 0 10px 28px rgba(11, 25, 44, 0.08);
+  border-color: #cbd5e1;
+}
+
+.analytics-card h3 {
+  font-family: 'Montserrat', sans-serif;
+  margin: 0 0 20px 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #041430;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 14px;
+  border-bottom: 1.5px solid #f1f5f9;
+}
+
+.analytics-card h3 i {
+  color: #00a859;
+  font-size: 1.25rem;
+}
+
+/* LISTE DE PROVENANCE GÉOGRAPHIQUE */
+.geo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.geo-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 0.88rem;
+}
+
+.geo-name {
+  width: 170px;
+  font-weight: 700;
+  color: #1e293b;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.geo-bar-bg {
+  flex: 1;
+  height: 10px;
+  background: #f1f5f9;
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+}
+
+.geo-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #041430 0%, #00a859 100%);
+  border-radius: 20px;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.geo-count {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  color: #059669;
+  font-size: 0.84rem;
+  background: #ecfdf5;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid #a7f3d0;
+  flex-shrink: 0;
+}
+
+/* LISTE DU TOP DES OFFRES LES PLUS ATTRACTIVES */
+.top-jobs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.top-job-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  transition: all 0.2s ease;
+}
+
+.top-job-item:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 14px rgba(11, 25, 44, 0.05);
+  transform: translateX(4px);
+}
+
+.top-job-item .rank {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #041430 0%, #002b75 100%);
+  color: #6ee7b7;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(4, 20, 48, 0.2);
+}
+
+.top-job-details h4 {
+  font-family: 'Montserrat', sans-serif;
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #041430;
+}
+
+.top-job-details p {
+  margin: 3px 0 0 0;
+  font-size: 0.82rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* COMPOSANTS DE TABLEAU DE CANDIDATURES */
+.candidat-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.table-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #00a859;
+  flex-shrink: 0;
+}
+
+.email-sub {
+  font-size: 0.78rem;
+  color: #64748b;
+  display: block;
+}
+
+.sub-text {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.score-badge-pill {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #059669;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 4px 12px;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+.status-select {
+  padding: 7px 14px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.status-select.soumis { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+.status-select.en_examen { background: #fef3c7; color: #d97706; border-color: #fde68a; }
+.status-select.entretien_programme { background: #f3e8ff; color: #7c3aed; border-color: #ddd6fe; }
+.status-select.accepte { background: #ecfdf5; color: #059669; border-color: #a7f3d0; }
+.status-select.refuse { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+
+.actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.action-btn.dossier {
+  background: linear-gradient(135deg, #041430 0%, #002b75 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  padding: 8px 14px !important;
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+  font-size: 0.8rem !important;
+  box-shadow: 0 4px 12px rgba(4, 20, 48, 0.2) !important;
+}
+
+.action-btn.dossier:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(4, 20, 48, 0.3) !important;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   ÉTAT VIDE SOFT & HUMANISE POUR LES FORMATIONS ET INCRIPTIONS RH
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.empty-training-state-card {
+  text-align: center;
+  padding: 52px 28px;
+  background: #ffffff;
+  border: 2px dashed #cbd5e1;
+  border-radius: 20px;
+  margin: 16px 0;
+  box-shadow: 0 4px 16px rgba(11, 25, 44, 0.02);
+}
+
+.empty-icon-circle-rh {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: #ecfdf5;
+  color: #00a859;
+  font-size: 1.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 18px auto;
+  box-shadow: 0 4px 16px rgba(0, 168, 89, 0.15);
+}
+
+.empty-training-state-card h4 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #041430;
+  margin: 0 0 8px 0;
+}
+
+.empty-training-state-card p {
+  font-size: 0.88rem;
+  color: #64748b;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.55;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   CARTE DE FORMULAIRE DE CRÉATION ÉVÉNEMENT / OFFRE / FORMATION (DESIGN CIVIQUE)
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.job-creation-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 28px 32px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+  transition: all 0.25s ease;
+}
+
+.job-creation-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.07);
+}
+
+.job-creation-card .form-card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.job-creation-card .form-card-header i {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: #ecfdf5;
+  color: #00a859;
+  font-size: 1.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #a7f3d0;
+  flex-shrink: 0;
+}
+
+.job-creation-card .form-card-header h4 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+.job-creation-card .form-card-header p {
+  font-size: 0.86rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.admin-form .form-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.admin-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 220px;
+}
+
+.admin-form .form-group label {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-form .form-group input,
+.admin-form .form-group select,
+.admin-form .form-group textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  background: #f8fafc;
+  color: #0f172a;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.admin-form .form-group input:focus,
+.admin-form .form-group select:focus,
+.admin-form .form-group textarea:focus {
+  outline: none;
+  background: #ffffff;
+  border-color: #00a859;
+  box-shadow: 0 0 0 4px rgba(0, 168, 89, 0.12);
+}
+
+.submit-job-btn {
+  align-self: flex-end;
+  background: linear-gradient(135deg, #00a859 0%, #008746 100%);
+  color: #ffffff;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  font-size: 0.92rem;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 168, 89, 0.35);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.submit-job-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 168, 89, 0.45);
+}
+
+/* =========================================================================
+   STYLE OFFICIEL FICHE DU CANDIDAT (FORMAT A4 MUNICIPAL)
+   ========================================================================= */
+
+.official-cv-document-sheet {
+  background: #ffffff;
+  width: 100%;
+  max-width: 800px;
+  min-height: 1050px;
+  padding: 44px 52px;
+  border-radius: 2px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  color: #0f172a;
+  font-family: 'Times New Roman', Times, Georgia, serif;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  border: 1px solid #cbd5e1;
+  text-align: left;
+}
+
+.print-official-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 2.5px double #041430;
+  padding-bottom: 14px;
+  text-align: center;
+  font-size: 0.76rem;
+  line-height: 1.3;
+  color: #0f172a;
+}
+
+.print-header-col { flex: 1; }
+.print-header-col.left { text-align: left; }
+.print-header-col.right { text-align: right; }
+.print-header-col.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.bold-country {
+  font-weight: 900;
+  font-size: 0.78rem;
+  color: #041430;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.motto {
+  font-style: italic;
+  color: #475569;
+  font-size: 0.72rem;
+}
+
+.header-divider-mini {
+  width: 36px;
+  height: 1px;
+  background: #041430;
+  margin: 3px auto;
+}
+
+.left .header-divider-mini { margin: 3px 0; }
+.right .header-divider-mini { margin: 3px 0 3px auto; }
+.bold-council { font-weight: 900; color: #041430; text-transform: uppercase; }
+.service-name { font-weight: 700; color: #002b75; }
+.print-national-emblem { width: 44px; height: 44px; object-fit: contain; }
+
+.print-portal-badge {
+  border: 1px solid #cbd5e1;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.print-portal-badge span { font-weight: 900; font-size: 0.72rem; color: #041430; letter-spacing: 0.5px; }
+.print-portal-badge small { font-size: 0.62rem; color: #475569; }
+
+.print-document-title-box {
+  text-align: center;
+  background: #ffffff;
+  border: 1.5px solid #041430;
+  border-radius: 4px;
+  padding: 10px 16px;
+}
+
+.print-document-title-box h2 {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #041430;
+  margin: 0 0 4px 0;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.print-ref-bar {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  font-size: 0.78rem;
+  color: #334155;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.print-identity-section {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 16px 20px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.print-avatar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.print-avatar-photo {
+  width: 84px;
+  height: 84px;
+  border-radius: 4px;
+  object-fit: cover;
+  border: 2px solid #041430;
+}
+
+.print-stamp-valid {
+  background: #ffffff;
+  color: #041430;
+  border: 1px solid #041430;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 0.3px;
+}
+
+.print-identity-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.print-candidate-name {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: #041430;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.print-domain-badge {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: #002b75;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid #002b75;
+  padding-bottom: 2px;
+  align-self: flex-start;
+}
+
+.print-contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 14px;
+  margin-top: 4px;
+}
+
+.print-contact-item {
+  font-size: 0.8rem;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.print-section-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.print-section-title {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #041430;
+  background: #ffffff;
+  border-bottom: 1.5px solid #041430;
+  padding: 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.print-bio-text {
+  font-size: 0.86rem;
+  color: #1e293b;
+  line-height: 1.55;
+  margin: 0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 10px 14px;
+}
+
+.print-diplomas-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 4px;
+  font-size: 0.8rem;
+}
+
+.print-diplomas-table th {
+  background: #f8fafc;
+  color: #041430;
+  font-weight: 900;
+  text-align: left;
+  padding: 6px 10px;
+  border: 1px solid #cbd5e1;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+}
+
+.print-diplomas-table td {
+  padding: 6px 10px;
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
+}
+
+.print-skills-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  font-size: 0.82rem;
+  color: #1e293b;
+  line-height: 1.5;
+}
+
+.print-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.print-summary-card {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.print-official-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #94a3b8;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+@media print {
+  body * { visibility: hidden; }
+  .modal-overlay,
+  .modal-content,
+  .official-cv-document-sheet,
+  .official-cv-document-sheet * {
+    visibility: visible;
+  }
+  .modal-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: auto;
+    background: transparent;
+    padding: 0;
+  }
+  .official-cv-document-sheet {
+    box-shadow: none;
+    padding: 0;
+    max-width: 100%;
+    border: none;
+  }
+}
+
