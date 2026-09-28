@@ -6,14 +6,14 @@ import { useLanguage } from '../context/LanguageContext';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import './Auth.css';
 
-const API_BASE_URL = `http://${window.location.hostname}:5000`;
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://hire-bridge-soa.onrender.com';
 
 const Auth = () => {
   const navigate = useNavigate();
   const { language, t, tp } = useLanguage();
 
   // Mode principal : 'login', 'signup', ou 'forgot'
-  const [viewMode, setViewMode] = useState('login'); 
+  const [viewMode, setViewMode] = useState('login');
 
   // États réinitialisation
   const [resetEmail, setResetEmail] = useState('');
@@ -225,14 +225,14 @@ const Auth = () => {
 
   return (
     <div className="auth-outer-bg">
-      
+
       {/* BARRE DE HEADER CIVIQUE SUPERIEURE AVEC SÉLECTEUR DE LANGUE */}
       <div className="auth-top-header">
         <div className="auth-header-brand" onClick={() => navigate('/')}>
           <div className="badge-logo-container-header">
-            <img 
-              src={`${process.env.PUBLIC_URL}/soa.png`} 
-              alt="Mairie de Soa" 
+            <img
+              src={`${process.env.PUBLIC_URL}/soa.png`}
+              alt="Mairie de Soa"
               className="soa-badge-img"
               onError={(e) => {
                 e.target.src = "https://upload.wikimedia.org/wikipedia/commons/b/b5/Coat_of_arms_of_Cameroon.svg";
@@ -353,11 +353,11 @@ const Auth = () => {
                 </button>
 
                 <div className="or-separator-gray"><span>{tp('OU', 'OR')}</span></div>
-                
+
                 <div className="google-btn-wrapper">
-                  <GoogleLogin 
-                    onSuccess={handleGoogleSuccess} 
-                    onError={() => setMessage({ text: tp('Échec de l\'authentification Google', 'Google authentication failed'), type: 'error' })} 
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={() => setMessage({ text: tp('Échec de l\'authentification Google', 'Google authentication failed'), type: 'error' })}
                   />
                 </div>
 
@@ -500,7 +500,7 @@ const Auth = () => {
               {message.text && <div className={`status-alert ${message.type}`}>{message.text}</div>}
 
               <form onSubmit={handleRegisterSubmit} className="login-form">
-                
+
                 <div className="signup-grid-inputs">
                   <div className="input-group-custom">
                     <i className="fa-regular fa-user input-left-icon"></i>
@@ -555,11 +555,11 @@ const Auth = () => {
                 </button>
 
                 <div className="or-separator-gray"><span>{tp('OU', 'OR')}</span></div>
-                
+
                 <div className="google-btn-wrapper">
-                  <GoogleLogin 
-                    onSuccess={handleGoogleSuccess} 
-                    onError={() => setMessage({ text: tp('Échec de l\'authentification Google', 'Google authentication failed'), type: 'error' })} 
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={() => setMessage({ text: tp('Échec de l\'authentification Google', 'Google authentication failed'), type: 'error' })}
                   />
                 </div>
 
