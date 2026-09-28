@@ -748,33 +748,291 @@
   font-size: 0.82rem;
 }
 
-/* RESPONSIVE MOCKUP */
+/* =========================================================================
+   RESPONSIVE MOCKUP — SMARTPHONES & TABLETTES (IPHONE & ANDROID)
+   ========================================================================= */
+
 @media (max-width: 1024px) {
   .hero-arche-left {
-    width: 65%;
-    padding: 40px;
+    width: 60%;
+    padding: 40px 32px;
   }
   .pour-vous-grid-4 {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+  /* 1. BARRE CIVIQUE EN-TÊTE */
+  .top-civic-bar {
+    padding: 8px 14px !important;
+  }
+  .civic-bar-inner {
+    flex-direction: column !important;
+    gap: 8px !important;
+    text-align: center !important;
+    align-items: center !important;
+  }
+  .civic-tag {
+    font-size: 0.72rem !important;
+    text-align: center !important;
+    line-height: 1.35 !important;
+    justify-content: center !important;
+  }
+  .civic-tools {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 8px 14px !important;
+    width: 100% !important;
+  }
+
+  /* 2. HEADER NAVBAR PRINCIPALE (AFFICHER ESPACE CANDIDAT EN PRIORITÉ SUR MOBILE) */
+  .public-header {
+    flex-direction: column !important;
+    padding: 12px 16px !important;
+    gap: 12px !important;
+    align-items: stretch !important;
+    position: relative !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .header-brand {
+    justify-content: center !important;
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  .header-coat {
+    height: 40px !important;
+  }
+
+  .mairie-title {
+    font-size: 1.15rem !important;
+  }
+
+  /* BOUTON ESPACE CANDIDAT SUR TOUTE LA LARGEUR POUR ÊTRE IMPOSSIBLE À MANQUER */
+  .header-actions {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+
+  .btn-espace-candidat-pill {
+    flex: 1 !important;
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 12px 18px !important;
+    font-size: 0.92rem !important;
+    box-shadow: 0 4px 14px rgba(15, 91, 140, 0.3) !important;
+  }
+
+  /* MENU DE NAVIGATION EN BARRE DÉFILABLE HORIZONTALEMENT */
+  .public-nav {
+    width: 100% !important;
+    display: flex !important;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    padding: 8px 0 4px !important;
+    border-top: 1px solid #f1f5f9 !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+
+  .public-nav::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .nav-link {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    font-size: 0.82rem !important;
+    padding: 6px 12px !important;
+    border-radius: 8px !important;
+    background: #f8fafc !important;
+  }
+
+  .nav-link.active::after {
+    display: none !important;
+  }
+
+  /* 3. HERO SECTION (CORRECTION DU DÉCOUPAGE SVG & CENTRAGE) */
+  /* MASQUER IMPÉRATIVEMENT L'ARCHE DIVIDER SVG POUR ÉVITER DE COUPER LE TEXTE */
+  .hero-arche-divider-svg {
+    display: none !important;
+  }
+
   .hero-arche-container {
-    flex-direction: column;
+    flex-direction: column !important;
+    min-height: auto !important;
   }
+
   .hero-arche-left {
-    width: 100%;
-    border-radius: 0;
-    padding: 40px 24px;
+    width: 100% !important;
+    padding: 32px 18px !important;
+    box-sizing: border-box !important;
+    text-align: center !important;
+    align-items: center !important;
   }
+
+  .kicker-tag-blue {
+    margin-left: auto !important;
+    margin-right: auto !important;
+    font-size: 0.7rem !important;
+    margin-bottom: 16px !important;
+  }
+
+  .hero-headline {
+    font-size: 1.65rem !important;
+    line-height: 1.25 !important;
+    margin-bottom: 14px !important;
+    text-align: center !important;
+    word-break: break-word !important;
+    letter-spacing: -0.4px !important;
+  }
+
+  .hero-subtext {
+    font-size: 0.92rem !important;
+    line-height: 1.55 !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    text-align: center !important;
+    margin-bottom: 24px !important;
+  }
+
+  .hero-buttons-row {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 10px !important;
+    margin-bottom: 28px !important;
+  }
+
+  .btn-consulter-green,
+  .btn-deposer-white {
+    width: 100% !important;
+    justify-content: center !important;
+    font-size: 0.92rem !important;
+    padding: 12px 16px !important;
+  }
+
+  .hero-stat-cards {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 10px !important;
+  }
+
+  .stat-card {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
   .hero-arche-right {
-    width: 100%;
-    margin-left: 0;
-    min-height: 350px;
+    width: 100% !important;
+    margin-left: 0 !important;
+    min-height: 240px !important;
+    max-height: 320px !important;
   }
+
+  .dark-building-badge-card {
+    left: 12px !important;
+    right: 12px !important;
+    bottom: 12px !important;
+    padding: 12px 14px !important;
+  }
+
+  .green-landmark-box {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 1rem !important;
+  }
+
+  .badge-text-box h4 {
+    font-size: 0.9rem !important;
+  }
+
+  .badge-text-box p {
+    font-size: 0.74rem !important;
+  }
+
+  /* 4. SECTION POUR VOUS */
+  .pour-vous-section {
+    padding: 36px 16px !important;
+  }
+
+  .pour-vous-title-block h2 {
+    font-size: 1.4rem !important;
+  }
+
   .pour-vous-grid-4 {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  /* 5. SECTIONS RECHERCHE ET OFFRES */
+  .public-main-content {
+    padding: 32px 16px 48px !important;
+  }
+
+  .jobs-header-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+    margin-bottom: 24px !important;
+  }
+
+  .section-title {
+    font-size: 1.35rem !important;
+  }
+
+  .jobs-controls-wrapper {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 12px !important;
+  }
+
+  .search-box-modern {
+    width: 100% !important;
+  }
+
+  .search-box-modern input {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .filter-pills {
+    width: 100% !important;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+    padding: 4px !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .pill {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    font-size: 0.8rem !important;
+    padding: 6px 12px !important;
+  }
+
+  .jobs-grid-public {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* 6. FOOTER */
+  .public-footer {
+    padding: 36px 16px 20px !important;
+  }
+
+  .footer-cols {
+    flex-direction: column !important;
+    gap: 24px !important;
+    margin-bottom: 24px !important;
   }
 }
+
 

@@ -574,7 +574,7 @@ app.get('/api/candidate/dashboard-data/:userId', async (req, res) => {
     if (profRes.rows.length === 0) {
       profile = (await pool.query(
         `INSERT INTO candidate_profiles(user_id,title,skills,experience_years,education_level,completion_percentage)
-         VALUES($1,'Candidat Polyvalent',ARRAY['Communication','Gestion de projet'],2,'Licence / Master',85) RETURNING *`,
+         VALUES($1,'Candidat Polyvalent',ARRAY[]::text[],0,'Licence / Master',0) RETURNING *`,
         [userId]
       )).rows[0];
     } else { profile = profRes.rows[0]; }
@@ -584,65 +584,87 @@ app.get('/api/candidate/dashboard-data/:userId', async (req, res) => {
     const candidateDiplomas = candidateDiplomasRes.rows;
 
     const jobs = (await pool.query("SELECT * FROM jobs WHERE status='actif' ORDER BY created_at DESC")).rows;
-    const candidateSkills = (profile.skills || ['Communication']).map(s => s.toLowerCase().trim());
-    const expYears = profile.experience_years || 1;
+    
+    // Extraction et nettoyage des compétences réelles renseignées par le candidat
+    const rawSkills = profile.skills;
+    const candidateSkills = Array.isArray(rawSkills)
+      ? rawSkills.map(s => String(s).toLowerCase().trim()).filter(Boolean)
+      : (typeof rawSkills === 'string' ? rawSkills.split(',').map(s => s.toLowerCase().trim()).filter(Boolean) : []);
+
+    const hasJobs = jobs.length > 0;
+    const hasSkills = candidateSkills.length > 0;
+    const expYears = profile.experience_years || 0;
     let totalScoreSum = 0;
 
     const recommendedJobs = jobs.map(job => {
       const jobTitle = (job.title || '').toLowerCase();
       const jobDept = (job.department || '').toLowerCase();
-      const jobSkills = job.skills_required || [];
+      const jobSkills = (job.skills_required || []).map(s => String(s).toLowerCase().trim()).filter(Boolean);
 
-      // 1. Ratio compétences requises
+      // 1. Calcul des compétences en commun
       let skillMatches = 0;
-      jobSkills.forEach(js => {
-        if (candidateSkills.some(cs => cs.includes(js.toLowerCase()) || js.toLowerCase().includes(cs))) skillMatches++;
-      });
-      const skillRatio = jobSkills.length > 0 ? skillMatches / jobSkills.length : 0.6;
+      if (hasSkills && jobSkills.length > 0) {
+        jobSkills.forEach(js => {
+          if (candidateSkills.some(cs => cs.includes(js) || js.includes(cs))) {
+            skillMatches++;
+          }
+        });
+      }
 
-      // 2. Bonus réel basé sur les diplômes et certifications téléversés
+      const skillRatio = (jobSkills.length > 0 && hasSkills) ? (skillMatches / jobSkills.length) : 0;
+
+      // 2. Bonus basé sur les diplômes téléversés
       let diplomaMatchBonus = 0;
       let matchingDiplomaTitle = null;
 
-      candidateDiplomas.forEach(dip => {
-        const dipTitle = (dip.title || '').toLowerCase();
-        if (
-          (jobTitle.includes('développeur') || jobTitle.includes('informatique') || jobDept.includes('informatique')) &&
-          (dipTitle.includes('informatique') || dipTitle.includes('logiciel') || dipTitle.includes('système') || dipTitle.includes('web') || dipTitle.includes('réseau') || dipTitle.includes('génie'))
-        ) {
-          diplomaMatchBonus = Math.max(diplomaMatchBonus, 28);
-          matchingDiplomaTitle = dip.title;
-        } else if (
-          (jobTitle.includes('rh') || jobTitle.includes('ressources humaines') || jobDept.includes('rh')) &&
-          (dipTitle.includes('ressources humaines') || dipTitle.includes('management') || dipTitle.includes('droit') || dipTitle.includes('administration'))
-        ) {
-          diplomaMatchBonus = Math.max(diplomaMatchBonus, 28);
-          matchingDiplomaTitle = dip.title;
-        } else if (
-          (jobTitle.includes('comptab') || jobTitle.includes('financ') || jobDept.includes('financ')) &&
-          (dipTitle.includes('comptab') || dipTitle.includes('financ') || dipTitle.includes('gestion') || dipTitle.includes('économie'))
-        ) {
-          diplomaMatchBonus = Math.max(diplomaMatchBonus, 28);
-          matchingDiplomaTitle = dip.title;
-        } else if (
-          (jobTitle.includes('civil') || jobTitle.includes('travaux') || jobTitle.includes('urbanisme')) &&
-          (dipTitle.includes('génie civil') || dipTitle.includes('bâtiment') || dipTitle.includes('urbanisme') || dipTitle.includes('topographie'))
-        ) {
-          diplomaMatchBonus = Math.max(diplomaMatchBonus, 28);
-          matchingDiplomaTitle = dip.title;
-        } else if (
-          (jobTitle.includes('communication') || jobDept.includes('communication')) &&
-          (dipTitle.includes('communication') || dipTitle.includes('journalisme') || dipTitle.includes('marketing') || dipTitle.includes('lettres'))
-        ) {
-          diplomaMatchBonus = Math.max(diplomaMatchBonus, 28);
-          matchingDiplomaTitle = dip.title;
-        }
-      });
+      if (candidateDiplomas && candidateDiplomas.length > 0) {
+        candidateDiplomas.forEach(dip => {
+          const dipTitle = (dip.title || '').toLowerCase();
+          if (
+            (jobTitle.includes('développeur') || jobTitle.includes('informatique') || jobDept.includes('informatique')) &&
+            (dipTitle.includes('informatique') || dipTitle.includes('logiciel') || dipTitle.includes('système') || dipTitle.includes('web') || dipTitle.includes('réseau') || dipTitle.includes('génie'))
+          ) {
+            diplomaMatchBonus = Math.max(diplomaMatchBonus, 28);
+            matchingDiplomaTitle = dip.title;
+          } else if (
+            (jobTitle.includes('rh') || jobTitle.includes('ressources humaines') || jobDept.includes('rh')) &&
+            (dipTitle.includes('ressources humaines') || dipTitle.includes('management') || dipTitle.includes('droit') || dipTitle.includes('administration'))
+          ) {
+            diplomaMatchBonus = Math.max(diplomaMatchBonus, 28);
+            matchingDiplomaTitle = dip.title;
+          } else if (
+            (jobTitle.includes('comptab') || jobTitle.includes('financ') || jobDept.includes('financ')) &&
+            (dipTitle.includes('comptab') || dipTitle.includes('financ') || dipTitle.includes('gestion') || dipTitle.includes('économie'))
+          ) {
+            diplomaMatchBonus = Math.max(diplomaMatchBonus, 28);
+            matchingDiplomaTitle = dip.title;
+          } else if (
+            (jobTitle.includes('civil') || jobTitle.includes('travaux') || jobTitle.includes('urbanisme')) &&
+            (dipTitle.includes('génie civil') || dipTitle.includes('bâtiment') || dipTitle.includes('urbanisme') || dipTitle.includes('topographie'))
+          ) {
+            diplomaMatchBonus = Math.max(diplomaMatchBonus, 28);
+            matchingDiplomaTitle = dip.title;
+          } else if (
+            (jobTitle.includes('communication') || jobDept.includes('communication')) &&
+            (dipTitle.includes('communication') || dipTitle.includes('journalisme') || dipTitle.includes('marketing') || dipTitle.includes('lettres'))
+          ) {
+            diplomaMatchBonus = Math.max(diplomaMatchBonus, 28);
+            matchingDiplomaTitle = dip.title;
+          }
+        });
+      }
 
-      // Calcul du score global : base 38% + compétences (jusqu'à 32%) + diplôme vérifié (jusqu'à 28%) + expérience (jusqu'à 8%)
-      let matchScore = Math.round(38 + (skillRatio * 30) + diplomaMatchBonus + Math.min(expYears * 2, 8));
-      if (matchScore > 98) matchScore = 98;
-      if (matchScore < 45) matchScore = 45;
+      // Calcul du score individuel par offre
+      let matchScore = 0;
+      if (hasSkills && (skillMatches > 0 || diplomaMatchBonus > 0)) {
+        matchScore = Math.round(25 + (skillRatio * 45) + diplomaMatchBonus + Math.min(expYears * 2, 10));
+        if (matchScore > 98) matchScore = 98;
+        if (matchScore < 15) matchScore = 15;
+      } else if (hasSkills) {
+        matchScore = 20;
+      } else {
+        matchScore = 0;
+      }
 
       totalScoreSum += matchScore;
       const theme = getJobTheme(job.title);
@@ -654,7 +676,7 @@ app.get('/api/candidate/dashboard-data/:userId', async (req, res) => {
         type: job.type || 'CDI',
         salary_range: job.salary_range,
         matchPercentage: matchScore,
-        match: `${matchScore}%`,
+        match: hasSkills ? `${matchScore}%` : 'Non évalué',
         matchingDiploma: matchingDiplomaTitle,
         skills_required: jobSkills,
         description: job.description,
@@ -668,7 +690,9 @@ app.get('/api/candidate/dashboard-data/:userId', async (req, res) => {
     });
 
     recommendedJobs.sort((a, b) => b.matchPercentage - a.matchPercentage);
-    const overallCompatibility = recommendedJobs.length > 0 ? Math.round(totalScoreSum / recommendedJobs.length) : 80;
+
+    // Score de compatibilité global : 0 si aucune offre publiée OU aucune compétence renseignée par le candidat
+    const overallCompatibility = (hasJobs && hasSkills) ? Math.round(totalScoreSum / recommendedJobs.length) : 0;
     const completion = calculateProfileCompletion(user, profile, candidateDiplomas);
 
     const userAppsRes = await pool.query(
@@ -833,52 +857,7 @@ function getJobTheme(title) {
   return { icon: 'fa-briefcase', color: '#f1f5f9', iconColor: '#475569' };
 }
 
-app.get('/api/candidate/dashboard-data/:userId', async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const userRes = await pool.query('SELECT id,nom,prenom,email,role,avatar_url,region,ville FROM users WHERE id=$1', [userId]);
-    if (userRes.rows.length === 0) return res.status(404).json({ message: 'Utilisateur non trouvé.' });
-    const user = userRes.rows[0];
 
-    let profRes = await pool.query('SELECT * FROM candidate_profiles WHERE user_id=$1', [userId]);
-    let profile;
-    if (profRes.rows.length === 0) {
-      profile = (await pool.query(
-        `INSERT INTO candidate_profiles(user_id,title,skills,experience_years,education_level,completion_percentage)
-         VALUES($1,'Candidat Polyvalent',ARRAY['JavaScript','React','HTML/CSS','Communication'],2,'Licence / Master',85) RETURNING *`,
-        [userId]
-      )).rows[0];
-    } else { profile = profRes.rows[0]; }
-
-    const jobs = (await pool.query("SELECT * FROM jobs WHERE status='actif' ORDER BY created_at DESC")).rows;
-    const candidateSkills = (profile.skills || ['Communication']).map(s => s.toLowerCase().trim());
-    const expYears = profile.experience_years || 1;
-    let totalScoreSum = 0;
-
-    const recommendedJobs = jobs.map(job => {
-      const jobSkills = job.skills_required || [];
-      let matches = 0;
-      jobSkills.forEach(js => { if (candidateSkills.some(cs => cs.includes(js.toLowerCase()) || js.toLowerCase().includes(cs))) matches++; });
-      const skillRatio = jobSkills.length > 0 ? matches / jobSkills.length : 0.7;
-      let matchScore = Math.round(50 + skillRatio * 38 + Math.min(expYears * 2.5, 10));
-      if (matchScore > 98) matchScore = 98;
-      totalScoreSum += matchScore;
-      const theme = getJobTheme(job.title);
-      return { id: job.id, title: job.title, department: job.department, location: job.location || 'Mairie de Soa', type: job.type || 'CDI', salary_range: job.salary_range, matchPercentage: matchScore, match: `${matchScore}%`, skills_required: jobSkills, description: job.description, missions: job.missions, requirements: job.requirements, deadline: job.deadline, icon: theme.icon, color: theme.color, iconColor: theme.iconColor };
-    });
-    recommendedJobs.sort((a, b) => b.matchPercentage - a.matchPercentage);
-    const overallCompatibility = recommendedJobs.length > 0 ? Math.round(totalScoreSum / recommendedJobs.length) : 80;
-    const completion = calculateProfileCompletion(user, profile);
-
-    const userAppsRes = await pool.query(
-      `SELECT a.*,COALESCE(j.title,'Stage') as job_title,COALESCE(j.department,'Service RH') as department
-       FROM applications a LEFT JOIN jobs j ON a.job_id=j.id WHERE a.user_id=$1 ORDER BY a.created_at DESC`,
-      [userId]
-    );
-
-    res.json({ user, profile: { ...profile, completion_percentage: completion }, completionPercentage: completion, compatibilityScore: overallCompatibility, recommendedJobs, myApplications: userAppsRes.rows });
-  } catch (err) { console.error('Erreur dashboard:', err); res.status(500).json({ message: 'Erreur.' }); }
-});
 
 // ==========================================
 // 4. OFFRES D'EMPLOI (CRUD)

@@ -394,6 +394,15 @@ const Auth = () => {
             </div>
 
             <div className="login-right-side">
+              <button
+                type="button"
+                className="btn-back-to-login-top"
+                onClick={() => { setViewMode('login'); setCodeSent(false); setMessage({ text: '', type: '' }); }}
+                title={tp('Retour à la connexion', 'Back to sign in')}
+              >
+                <i className="fa-solid fa-arrow-left"></i> {tp('Retour à la connexion', 'Back to sign in')}
+              </button>
+
               <div className="avatar-header-circle"><i className="fa-solid fa-key"></i></div>
               <h2 className="title-connexion-modern">{tp('Mot de passe oublié', 'Forgot Password')}</h2>
 
@@ -417,8 +426,9 @@ const Auth = () => {
                   </button>
 
                   <p className="footer-switch-text" style={{ marginTop: '20px' }}>
-                    <span className="switch-link-green" onClick={() => { setViewMode('login'); setMessage({ text: '', type: '' }); }}>
-                      &larr; {tp('Retour à la connexion', 'Back to sign in')}
+                    <span className="switch-link-green" onClick={() => { setViewMode('login'); setCodeSent(false); setMessage({ text: '', type: '' }); }}>
+                      <i className="fa-solid fa-arrow-left" style={{ marginRight: '6px' }}></i>
+                      {tp('Retour à la connexion', 'Back to sign in')}
                     </span>
                   </p>
                 </form>
@@ -460,6 +470,13 @@ const Auth = () => {
                   <button type="submit" className="btn-submit-green-arrow" disabled={loading}>
                     {loading ? tp('VALIDATION...', 'SAVING...') : tp('ENREGISTRER', 'SAVE NEW PASSWORD')} <i className="fa-solid fa-arrow-right"></i>
                   </button>
+
+                  <p className="footer-switch-text" style={{ marginTop: '20px' }}>
+                    <span className="switch-link-green" onClick={() => { setViewMode('login'); setCodeSent(false); setMessage({ text: '', type: '' }); }}>
+                      <i className="fa-solid fa-arrow-left" style={{ marginRight: '6px' }}></i>
+                      {tp('Retour à la connexion', 'Back to sign in')}
+                    </span>
+                  </p>
                 </form>
               )}
             </div>

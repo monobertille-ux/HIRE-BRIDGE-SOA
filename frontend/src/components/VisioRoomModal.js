@@ -435,7 +435,7 @@ const VisioRoomModal = ({
                   <div className="remote-simulated-avatar">
                     <div className={`avatar-pulse-circle ${remoteParticipant.isSpeaking ? 'speaking' : ''}`}>
                       <img
-                        src={remoteParticipant.userAvatar || (remoteParticipant.role === 'rh' ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300' : 'https://i.pravatar.cc/150?img=68')}
+                        src={remoteParticipant.userAvatar || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'><circle cx='64' cy='64' r='64' fill='%23e2e8f0'/><circle cx='64' cy='48' r='24' fill='%2364748b'/><path d='M64 80c-26.5 0-48 16.1-48 36v12h96v-12c0-19.9-21.5-36-48-36z' fill='%2364748b'/></svg>"}
                         alt={remoteParticipant.userName}
                         className="remote-avatar-img"
                       />

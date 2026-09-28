@@ -9,6 +9,7 @@ import { getDynamicGreeting } from '../../utils/timeGreeting';
 import './AdminDashboard.css';
 
 const API_BASE_URL = `http://${window.location.hostname}:5000`;
+const DEFAULT_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'><circle cx='64' cy='64' r='64' fill='%23e2e8f0'/><circle cx='64' cy='48' r='24' fill='%2364748b'/><path d='M64 80c-26.5 0-48 16.1-48 36v12h96v-12c0-19.9-21.5-36-48-36z' fill='%2364748b'/></svg>";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -1456,7 +1457,7 @@ const AdminDashboard = () => {
               title="Cliquer pour modifier la photo de profil RH"
             >
               <img
-                src={adminUser.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300'}
+                src={adminUser.avatar_url || DEFAULT_AVATAR}
                 alt="Avatar RH"
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
@@ -1645,7 +1646,7 @@ const AdminDashboard = () => {
               title="Accéder à mon Profil RH & Sécurité"
             >
               <img
-                src={adminUser.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300'}
+                src={adminUser.avatar_url || DEFAULT_AVATAR}
                 alt="Avatar"
                 className="topbar-rh-avatar"
               />
@@ -2108,7 +2109,7 @@ const AdminDashboard = () => {
                             <td>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                 <img
-                                  src={cand.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(cand.prenom + ' ' + cand.nom)}&background=00a859&color=fff`}
+                                  src={cand.avatar_url || DEFAULT_AVATAR}
                                   alt=""
                                   style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}
                                 />
@@ -2444,7 +2445,7 @@ const AdminDashboard = () => {
                         style={{ cursor: 'pointer' }}
                         title="Cliquer pour examiner le dossier complet du candidat"
                       >
-                        <img src={app.avatar_url || 'https://i.pravatar.cc/150?img=68'} alt="" className="table-avatar" />
+                        <img src={app.avatar_url || DEFAULT_AVATAR} alt="" className="table-avatar" />
                         <div>
                           <strong style={{ color: '#074696', fontWeight: 800 }}>{app.prenom} {app.nom}</strong>
                           <span className="email-sub">{app.email}</span>
@@ -4288,7 +4289,7 @@ const AdminDashboard = () => {
                     title="Cliquez pour téléverser une nouvelle photo"
                   >
                     <img
-                      src={adminUser.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300'}
+                      src={adminUser.avatar_url || DEFAULT_AVATAR}
                       alt="Photo de profil RH"
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
@@ -4942,7 +4943,7 @@ const AdminDashboard = () => {
                             {/* INFOS DU CANDIDAT */}
                             <div style={{ background: '#f8fafc', padding: '10px 12px', borderRadius: '10px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                               <img
-                                src={doc.candidate_avatar || 'https://i.pravatar.cc/150?img=68'}
+                                src={doc.candidate_avatar || DEFAULT_AVATAR}
                                 alt="Candidat"
                                 style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }}
                               />
@@ -5142,7 +5143,7 @@ const AdminDashboard = () => {
 
               <div style={{ display: 'flex', gap: '22px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <img
-                  src={selectedAppReviewData.application.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300'}
+                  src={selectedAppReviewData.application.avatar_url || DEFAULT_AVATAR}
                   alt=""
                   style={{ width: '85px', height: '85px', borderRadius: '50%', border: '4px solid #fff', objectFit: 'cover', boxShadow: '0 6px 18px rgba(0,0,0,0.2)' }}
                 />
@@ -5747,7 +5748,7 @@ const AdminDashboard = () => {
                     <section className="print-identity-section">
                       <div className="print-avatar-col">
                         <img
-                          src={selectedAppReviewData.application.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300'}
+                          src={selectedAppReviewData.application.avatar_url || DEFAULT_AVATAR}
                           alt="Avatar"
                           className="print-avatar-photo"
                         />
@@ -6018,7 +6019,7 @@ const AdminDashboard = () => {
 
               <div style={{ display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <img
-                  src={candidateProfileModalData.user.avatar_url || 'https://i.pravatar.cc/150?img=68'}
+                  src={candidateProfileModalData.user.avatar_url || DEFAULT_AVATAR}
                   alt=""
                   style={{ width: '90px', height: '90px', borderRadius: '50%', border: '4px solid #fff', objectFit: 'cover' }}
                 />
@@ -6863,7 +6864,7 @@ const AdminDashboard = () => {
               {/* RECAP CANDIDAT & POSTE */}
               <div style={{ background: '#fef2f2', border: '1.5px solid #fca5a5', borderRadius: '12px', padding: '14px 18px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '14px' }}>
                 <img
-                  src={rejectTargetApp.candidate_avatar || rejectTargetApp.avatar_url || 'https://i.pravatar.cc/150?img=68'}
+                  src={rejectTargetApp.candidate_avatar || rejectTargetApp.avatar_url || DEFAULT_AVATAR}
                   alt=""
                   style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #dc2626' }}
                 />
@@ -7386,7 +7387,7 @@ const AdminDashboard = () => {
                   {/* Profil En-tête */}
                   <div style={{ display: 'flex', gap: '16px', alignItems: 'center', backgroundColor: '#f8fafc', padding: '16px', borderRadius: '12px', marginBottom: '20px', border: '1px solid #e2e8f0' }}>
                     <img
-                      src={selectedCandidateActivity.candidate.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedCandidateActivity.candidate.prenom + ' ' + selectedCandidateActivity.candidate.nom)}&background=00a859&color=fff`}
+                      src={selectedCandidateActivity.candidate.avatar_url || DEFAULT_AVATAR}
                       alt=""
                       style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover' }}
                     />

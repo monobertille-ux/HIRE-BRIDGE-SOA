@@ -81,8 +81,8 @@ const CandidateDashboard = () => {
 
   // Données dynamiques
   const [dashboardData, setDashboardData] = useState({
-    completionPercentage: 85,
-    compatibilityScore: 82,
+    completionPercentage: 0,
+    compatibilityScore: 0,
     recommendedJobs: [],
     myApplications: []
   });
@@ -1155,10 +1155,12 @@ const CandidateDashboard = () => {
     }
   };
 
-  const defaultAvatar = 'https://i.pravatar.cc/150?img=68';
-  const currentAvatar = (user && user.avatar_url) ? user.avatar_url : defaultAvatar;
+  const defaultAvatar = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'><circle cx='64' cy='64' r='64' fill='%23e2e8f0'/><circle cx='64' cy='48' r='24' fill='%2364748b'/><path d='M64 80c-26.5 0-48 16.1-48 36v12h96v-12c0-19.9-21.5-36-48-36z' fill='%2364748b'/></svg>";
+  const currentAvatar = (user && user.avatar_url && user.avatar_url.trim()) ? user.avatar_url : defaultAvatar;
 
-  const score = dashboardData.compatibilityScore || 82;
+  const hasSkills = Boolean(profileForm.skills && profileForm.skills.trim().length > 0);
+  const hasJobs = Boolean(dashboardData.recommendedJobs && dashboardData.recommendedJobs.length > 0);
+  const score = (hasJobs && hasSkills) ? (dashboardData.compatibilityScore || 0) : 0;
   const strokeOffset = Math.max(0, Math.min(180, 180 - (180 * score) / 100));
 
   return (
@@ -1413,12 +1415,55 @@ const CandidateDashboard = () => {
                 <span className="col-label">
                   {language === 'en' ? 'Your compatibility with current opportunities' : 'Votre compatibilité avec les opportunités actuelles'}
                 </span>
-                <div className="score-big-group">
-                  <span className="score-big-number">{score}%</span>
-                  <span className="score-qualifier-badge">
-                    {score >= 75 ? (language === 'en' ? 'Very good profile' : 'Très bon profil') : (language === 'en' ? 'Good profile' : 'Bon profil')}
-                  </span>
-                </div>
+                {!hasJobs ? (
+                  <div className="score-info-block no-jobs">
+                    <span className="score-big-number" style={{ color: '#94a3b8' }}>--</span>
+                    <span className="score-qualifier-badge neutral" style={{ background: '#f1f5f9', color: '#64748b' }}>
+                      {language === 'en' ? 'No active job offers' : 'Aucune offre publiée'}
+                    </span>
+                    <p className="score-hint-text" style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '4px' }}>
+                      {language === 'en'
+                        ? 'Compatibility is calculated automatically when job positions are published.'
+                        : 'Le score de compatibilité s\'évaluera dès la publication de nouvelles offres par la Mairie de Soa.'}
+                    </p>
+                  </div>
+                ) : !hasSkills ? (
+                  <div className="score-info-block no-skills">
+                    <span className="score-big-number" style={{ color: '#d97706' }}>0%</span>
+                    <span className="score-qualifier-badge warning" style={{ background: '#fef3c7', color: '#b45309' }}>
+                      {language === 'en' ? 'Add your skills' : 'Compétences requises'}
+                    </span>
+                    <p className="score-hint-text" style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '4px' }}>
+                      {language === 'en'
+                        ? 'Add your skills to your profile to calculate your compatibility.'
+                        : 'Renseignez vos compétences dans votre profil pour calculer votre score de compatibilité.'}
+                    </p>
+                    <button
+                      type="button"
+                      className="btn-link-edit"
+                      style={{ marginTop: '6px' }}
+                      onClick={() => setActiveTab('profile')}
+                    >
+                      <i className="fa-solid fa-plus-circle"></i> {language === 'en' ? 'Add skills to profile' : 'Renseigner mes compétences'}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="score-big-group">
+                    <span className="score-big-number">{score}%</span>
+                    <span className={`score-qualifier-badge ${score >= 75 ? 'excellent' : (score >= 50 ? 'good' : 'moderate')}`}>
+                      {score >= 75
+                        ? (language === 'en' ? 'Very good match' : 'Très bon profil')
+                        : (score >= 50
+                            ? (language === 'en' ? 'Good match' : 'Bon profil')
+                            : (language === 'en' ? 'Moderate match' : 'Compatibilité modérée'))}
+                    </span>
+                    <p className="score-hint-text" style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '4px' }}>
+                      {language === 'en'
+                        ? 'Calculated dynamically based on your skills, diplomas and experience.'
+                        : 'Score calculé selon vos compétences, vos diplômes et vos années d\'expérience.'}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1434,45 +1479,59 @@ const CandidateDashboard = () => {
               </div>
 
               <div className="opportunities-structured-list">
-                {(dashboardData.recommendedJobs || []).map(job => (
-                  <div key={job.id} className="opp-row-item" onClick={() => setSelectedJobToApply(job)}>
-                    <div className="opp-main-info">
-                      <h4 className="opp-title">
-                        {language === 'en' ? (
-                          job.title === 'Assistant Ressources Humaines' ? 'Human Resources Assistant' :
-                          job.title === 'Analyste de Données' ? 'Data Analyst' :
-                          job.title === 'Chargé de Communication' ? 'Communications Officer' :
-                          job.title === 'Stagiaire Académique en Droit Public / Informatique' ? 'Academic Intern in Public Law / IT' :
-                          job.title
-                        ) : job.title}
-                      </h4>
-                      <p className="opp-org">
-                        <i className="fa-solid fa-landmark" /> {language === 'en' ? 'Soa Council • Yaounde, Cameroon' : 'Mairie de Soa'}
-                      </p>
-                    </div>
+                {!hasJobs ? (
+                  <div style={{ textAlign: 'center', padding: '36px 20px', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+                    <i className="fa-solid fa-briefcase" style={{ fontSize: '2.2rem', color: '#94a3b8', marginBottom: '10px', display: 'block' }} />
+                    <h4 style={{ margin: '0 0 6px', color: '#334155', fontWeight: 700 }}>
+                      {language === 'en' ? 'No active job opportunities at the moment' : 'Aucune offre d\'emploi disponible pour le moment'}
+                    </h4>
+                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
+                      {language === 'en'
+                        ? 'Job and internship offers published by Soa Council will appear here.'
+                        : 'Les offres d\'emploi et de stage publiées par la Mairie de Soa s\'afficheront ici.'}
+                    </p>
+                  </div>
+                ) : (
+                  (dashboardData.recommendedJobs || []).map(job => (
+                    <div key={job.id} className="opp-row-item" onClick={() => setSelectedJobToApply(job)}>
+                      <div className="opp-main-info">
+                        <h4 className="opp-title">
+                          {language === 'en' ? (
+                            job.title === 'Assistant Ressources Humaines' ? 'Human Resources Assistant' :
+                            job.title === 'Analyste de Données' ? 'Data Analyst' :
+                            job.title === 'Chargé de Communication' ? 'Communications Officer' :
+                            job.title === 'Stagiaire Académique en Droit Public / Informatique' ? 'Academic Intern in Public Law / IT' :
+                            job.title
+                          ) : job.title}
+                        </h4>
+                        <p className="opp-org">
+                          <i className="fa-solid fa-landmark" /> {language === 'en' ? 'Soa Council • Yaounde, Cameroon' : 'Mairie de Soa'}
+                        </p>
+                      </div>
 
-                    <div className="opp-meta-group">
-                      <span className={`opp-type-badge ${job.type?.toLowerCase()}`}>{job.type}</span>
-                      <div className="opp-compat-info">
-                        <small>{language === 'en' ? 'Compatibility:' : 'Compatibilité :'}</small>
-                        <strong>{job.match}</strong>
+                      <div className="opp-meta-group">
+                        <span className={`opp-type-badge ${job.type?.toLowerCase()}`}>{job.type}</span>
+                        <div className="opp-compat-info">
+                          <small>{language === 'en' ? 'Compatibility:' : 'Compatibilité :'}</small>
+                          <strong>{job.match}</strong>
+                        </div>
+                      </div>
+
+                      <div className="opp-action-side">
+                        <button
+                          type="button"
+                          className="btn-view-job-row"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedJobToApply(job);
+                          }}
+                        >
+                          {language === 'en' ? 'View offer' : 'Voir l\'offre'}
+                        </button>
                       </div>
                     </div>
-
-                    <div className="opp-action-side">
-                      <button
-                        type="button"
-                        className="btn-view-job-row"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedJobToApply(job);
-                        }}
-                      >
-                        {language === 'en' ? 'View offer' : 'Voir l\'offre'}
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
